@@ -1,0 +1,187 @@
+---
+title: "IONiseR"
+author: "Mike L. Smith"
+date: "`r doc_date()`"
+package: "`r pkg_ver('IONiseR')`"
+output: 
+  BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Quality assessment tools for nanopore data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+bibliography: bibliography.bib
+---
+
+```{r style, echo = FALSE, results = 'asis'}
+BiocStyle::markdown()
+```
+
+# Introduction
+
+This package is intended to provide tools for the quality assessment of data produced by Oxford Nanopore's MinION sequencer.  It includes a functions to generate a number plots for examining the statistics that we think will be useful for this task.
+
+However, nanopore sequencing is an emerging and rapidly developing technology.  It is not clear what will be most informative.  We hope that `IONiseR` will provide a framework for visualisation of metrics that we haven't thought of, and welcome feedback at mike.smith@cruk.cam.ac.uk.
+
+## Getting started
+
+In order to get started we need to load the `IONiseR` library.  In addition also load `ggplot2` and `gridExtra`, which are useful for arranging the plots in this vignette, but they are not essential to using the package.
+
+```{r loadLibs, message=FALSE, warning=FALSE}
+library(IONiseR)
+library(ggplot2)
+library(gridExtra)
+```
+
+# Reading data
+
+Once the libraries are loaded we need to read some data.  We do this using the function `readFast5Summary()`.  This function takes a vector containing the path names of fast5 files you'd like to read.  The example below looks in a specific folder and selects all of the files whose name ends with ".fast5".  We then pass this list of files to the reading function.
+
+*You should replace "/path/to/data" with the location of your fast5 files*.
+
+```{r readData, eval=FALSE}
+fast5files <- list.files(path = "/path/to/data/", pattern = ".fast5$", full.names = TRUE)
+example.summary <- readFast5Summary( fast5files )
+```
+
+Raw fast5 data isn't distributed with this package, but example of the summarised format can found in the accompanying `minionSummaryData` package.  The following command will load this data, giving us an object called `s.typhi.rep1`.  If you have your own MinION data you wish to work with you should ignore this section of code and modify the example above to read your own files.
+
+*The data presented in this example are taken from the publication by Ashton* et al *[@ashton2015minion]. You can obtain the original data from the European Nucleotide Archive here: http://www.ebi.ac.uk/ena/data/view/ERR668747*
+
+```{r loadData}
+library(minionSummaryData)
+data(s.typhi.rep1)
+```
+
+Typing the name of the resulting object will print a short summary of its contents to the screen.
+
+```{r exampleData}
+s.typhi.rep1
+```
+
+## The `Fast5Summary` class
+
+The `s.typhi.rep1` object is an example of a the `Fast5Summary` class.  
+
+The structure of the class tries to reflect the variety of data one can find in fast5 files.  Depending upon the quality of the data basecalling may not be successful resulting in fast5 files that are essentially empty or files that contain event information but no called bases.  More commonly, basecalling is successful to some extent, but there is still a range of possibilities including files with only a template strand called, files with template and complement strands of differening lengths, and ideally files with well matched template and complement strands, plus a consensus 2D read.
+
+*It is possible to read fast5 files that have not been basecalled, but since in most cases uploading to the Metrichor basecaller is performed automatically, it is unlikely that this will be a common usecase.*
+
+The `Fast5Summary` class has four slots, each of which is designed to store data relating to one level of processing described above. The data themselves are stored as either as a `data.frame` or a `ShortReadQ`, one per slot. The table below gives the names of the four slots, along with a description of stage within the base calling process this represents and the specific fields that are currently stored in the appropriate `data.frame`. 
+
+  Fast5Summary-class 
+  -------------------------
+  **readInfo** - All fast5 files contain this level of information 
+  File name, channel, mux 
+  **rawData** - If events were recorded this level is populated 
+  Median signal, start time, duration, no. of events 
+  **baseCalled** - Created if base calling succeeded. Separate entries for each strand 
+  Start time, duration, no. of events, strand, 2D status 
+  **fastq** - Up to three entries per file (template, complement and 2D reads) 
+  Bases and qualities 
+
+
+### Extracting data
+
+Data in the four slots can be obtained using the appropriate accessor methods: `readInfo()`, `rawData()`, `baseCalled()` and `fastq()`.  The example below extracts the base called from our example object.
+
+```{r extractData1, warning=FALSE}
+baseCalled(s.typhi.rep1)
+```
+
+### Subsetting
+
+Since the the number of entries in each slot can be different between a specific reads, the `id` column is present in all entires corresponds to the fast5 file data was read from.  Subsetting operations work relative to this `id` field, so all data from the selected files is retained.  In the example below we select two files and can see that both the template and complement read information is retained in the `baseCalled` slot.
+
+```{r extractData2, warning=FALSE}
+baseCalled(s.typhi.rep1[1:2])
+```
+
+# Summary plots
+
+## Data production
+
+Once data have been read into a summary object `IONiseR` contains a number of functions for plotting the data.  The first example below visualises the accumulation of reads over the run time.  The second plot shows the how many channels were active (i.e. the number of molecules being read) during each minute of the experiment.
+
+```{r summaryPlots1, fig.height=5, fig.width=12.5, dev='png', warning=FALSE}
+p1 <- plotReadAccumulation(s.typhi.rep1)
+p2 <- plotActiveChannels(s.typhi.rep1)
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## Read types
+
+We may also be interested in the proportion of reads types that were generated.  Ideally, Oxford Nanopore's sequencing technology works by reading both the template and complement strands of a double-stranded DNA molecule.  The readings from both strands are then combined to give a higher confidence consensus sequence for the whole fragment - referred to as a 2D read.  
+
+Given the nature of this process, there is a strict hierarchy to the data that can be found in a fast5 file. A full 2D read requires both a complement and template strand to have been read correctly. Similarly, a complement strand can only be present if the template was read successfully. Finally, you can encounter a file containing no called bases on either strand.
+
+The function `plotReadCategories()` will visualise the total number of fast5 files summarised in an `Fast5Summary` object, along with the counts of those containing template, complement and 2D calls.  For an ideal dataset all four bars will be the same height, and the difference between them can reflect the quality of a dataset.  These values are the same as those printed out when typing in the name of a summary data object.
+
+It may also be interesting to examine the base quality scores for the reads in the three categories.  The function `plotReadCategoryQuals()` allows one to do this, calculating the mean quality score for each sequence.
+
+```{r readCategories, fig.height=5, fig.width=12.5, dev='svg', warning=FALSE}
+p1 <- plotReadCategoryCounts(s.typhi.rep1)
+p2 <- plotReadCategoryQuals(s.typhi.rep1)
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## Reading rates
+
+We can also look the performance of the pores over time.  For example, we may be interested in how rapidly events occur, which should be analagous to the rate at which molecules move through the nanopores.  The function `plotEventRate()` visualises this.
+
+In similar fashion, we can also look at the rate at which actual nucleotide bases are called changes over time using `plotBaseProductionRate()`.  One would expect this to be closely related to the event rate (since each event should correspond to a base moving through the pore), however it is possible to envisage an scenario where events are recorded, but for some reason the base caller struggles to interpret them.
+
+```{r summaryPlots2, fig.height=5, fig.width=12.5, dev='png', warning=FALSE}
+p1 <- plotEventRate(s.typhi.rep1)
+p2 <- plotBaseProductionRate(s.typhi.rep1)
+grid.arrange(p1, p2, ncol = 2)
+```
+
+# Layout plots
+
+When considering channel related metrics we can plot them as they are laid out on the flow cell.  To create plots of this form we can use the function `layoutPlot()`.  
+```{r numReads, fig.height=4.8, fig.width=14.5, dev='svg', warning=FALSE}
+p1 <- layoutPlot(s.typhi.rep1, attribute = "nreads")
+p2 <- layoutPlot(s.typhi.rep1, attribute = "kb")
+grid.arrange(p1, p2, ncol = 2)
+```
+
+The `attribute` argument currently takes three possible values: "nreads", "kb" or "signal" which will respectively plot the total number of reads, the cumulative number of bases read by a channel, and the median signal recorded by the pore.  
+
+## Plotting alternative metrics
+
+If you wish to map a different metric on to the channel layout you can use the fuction `channelHeatmap()`.  This function requires a data.frame as input, with one column called 'channel'.  You can then use to the argument `zValue` to specify the intensity with which each channel is plotted.  
+
+To demonstrate this, in the example below we will plot both the number of full 2D reads produced by each channel, and the proportion of all reads from the channel that are 2D.  When retrieving data from the `Fast5Summary`  object, each slot is returned as a `data.table`, allowing us to use `dplyr` and its associated pipe paradigm to manipulate the data. 
+
+```{r heatmapExample, fig.height=4.8, fig.width=14.5, dev='svg', message=FALSE, warning=FALSE}
+library(dplyr)
+
+read_count_2D <- baseCalled(s.typhi.rep1) %>% ## start with base called reads
+  filter(strand == 'template') %>% ## keep template so we don't count things twice
+  left_join(readInfo(s.typhi.rep1), by = 'id') %>% ## channel stored in @readInfo slot, match by id column
+  group_by(channel) %>% ## group according to channel
+  summarise(d2_count = length(which(full_2D == TRUE)), ## count those with full 2D status
+            d2_prop = length(which(full_2D == TRUE)) / n()) ## divide by total count of reads from channel
+
+## plot side-by-side
+p1 <- channelHeatmap(read_count_2D, zValue = 'd2_count')
+p2 <- channelHeatmap(read_count_2D, zValue = 'd2_prop')
+grid.arrange(p1, p2, ncol = 2)
+```
+
+# Extracting reads
+
+If you wish to write reads out to a FASTQ file, you can use the `writeFastq()` function from the `ShortRead` package, as shown here:
+
+```{r writefastq, message=FALSE}
+library(ShortRead)
+writeFastq( fastq( s.typhi.rep1 ), file = tempfile() )
+```
+
+`IONiseR` also includes shortcut accessor functions for extracting the fastq entries for only the template (`fastqTemplate()`), complement (`fastqComplement()`) or 2D (`fastq2D()`) reads.  You can use these to extract and write out only the subset of reads you are intested in.  The example below will save only the 2D reads to a file.
+
+```{r writefastq2}
+writeFastq( fastq2D( s.typhi.rep1 ), file = tempfile() )
+```
+
+# References
