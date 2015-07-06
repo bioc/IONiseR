@@ -18,6 +18,50 @@
     return(res)
 }
 
+## Some fast5 files can be corrupt.  This just checks whether we can open them
+## and returns a boolean result.
+.checkOpening <- function(file) {
+    fid <- .H5Fopen_tryCatch(file)
+    res <- is(fid,"H5IdComponent")
+    if(res) { H5Fclose(fid) }
+    return(res)
+}
+
+.H5Fopen_tryCatch <- function(file) {
+    out <- tryCatch(
+        {
+            H5Fopen(file)
+        },
+        error=function(cond) {
+            message(paste('Error opening:', file, "- File Skipped"))
+            return(NA)
+        }
+    )    
+    return(out)
+}
+
+## The sampling is how many times the signal is recorded per second.
+## We use this to convert the 'duration' and 'start_time' in the raw data
+## into seconds.  It may also be useful meta data
+.getSamplingRate <- function(file) {
+    
+    fid <- H5Fopen(file)
+    on.exit(H5Fclose(fid))
+    
+    exists <- .groupExistsObj(fid, group = "/UniqueGlobalKey/channel_id")
+    if(!exists) {
+        rate <- NA
+    } else {
+        gid <- H5Gopen(fid, "/UniqueGlobalKey/channel_id/")   
+        aid <- H5Aopen(gid, "sampling_rate")
+        rate <- H5Aread(aid)
+        H5Aclose(aid)
+        H5Gclose(gid)
+    }
+    return( rate )
+}
+
+
 .getReadChannelMux <- function(file) {
     
     fid <- H5Fopen(file)
@@ -77,10 +121,10 @@
         ## Open the group and read the two attributes we want
         gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/", read_number_char)) 
         aid <- H5Aopen(gid, "duration")
-        duration <- H5Aread(aid) / 5000 ## we convert this to seconds
+        duration <- H5Aread(aid) 
         H5Aclose(aid)
         aid <- H5Aopen(gid, "start_time") 
-        start_time <- H5Aread(aid) / 5000 ## we convert this to seconds
+        start_time <- H5Aread(aid) 
         H5Aclose(aid)   
         
         did <- H5Dopen(gid, "Events")
@@ -93,6 +137,32 @@
     } 
     
     return(data.frame(start_time, duration, num_events, median_signal))  
+}
+
+.getRaw <- function(file) {
+    
+    fid <- H5Fopen(file)
+    on.exit(H5Fclose(fid))
+    
+    exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
+    if(!exists) {
+        start_time <- duration <- num_events <- median_signal <- NA
+    } else {
+        ## get the Read_No., this changes in every file
+        gid <- H5Gopen(fid, "/Analyses/EventDetection_000/Reads")
+        read_number_char <- h5ls(gid)[1,"name"]
+        H5Gclose(gid)
+        
+        ## Open the group
+        gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/", read_number_char)) 
+        did <- H5Dopen(gid, "Events")
+        events <- data.table(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
+        H5Dclose(did)
+        
+        H5Gclose(gid)
+    } 
+    
+    return(events)
 }
 
 .getSummaryBaseCalled <- function(file, strand = "template") {
@@ -123,4 +193,22 @@
     basecalledStats <- data.table(num_events, duration, start_time, strand)
     
     return(basecalledStats)  
+}
+
+.getBaseCalled <- function(file, strand = "template") {
+    
+    fid <- H5Fopen(file)
+    on.exit(H5Fclose(fid))
+    
+    exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/Summary/basecall_1d_", strand))
+    if(!exists) {
+        events <- NA
+    } else {
+        ## Open the group and read
+        did <- H5Dopen(fid, paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand, "/Events"))   
+        events <- data.table(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
+        H5Dclose(did)
+    }
+
+    return(events)  
 }
