@@ -19,6 +19,10 @@
 #' @importFrom ShortRead append
 readFast5Summary <- function(files) {
     
+    ## some files can't be opened, so we filter them here
+    fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
+    files <- files[ which(fileStatus) ]
+    
     message("Reading Channel Data")
     readInfo <- lapply(files, .getReadChannelMux)
     readInfo <- rbindlist(readInfo)
@@ -27,6 +31,12 @@ readFast5Summary <- function(files) {
     message("Reading Raw Data")
     rawData <- lapply(files, .getSummaryRaw)
     rawData <- data.table(id = readInfo[,id], rbindlist(rawData))
+    ## we convert timing data into seconds. 
+    ## To do this we find the sampling rate stored in one file
+    samplingRate <- .getSamplingRate(files[1])
+    rawData <- mutate(rawData, 
+                      start_time = start_time / samplingRate,
+                      duration = duration / samplingRate)
     
     message("Reading Template Data")
     template <- lapply(files, .getSummaryBaseCalled, strand = "template")
