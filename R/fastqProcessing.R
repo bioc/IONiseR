@@ -49,19 +49,23 @@
 
 .getFastqString <- function(file, strand = "template") {
   ## returns the unprocess fastq string stored in fast5 files
-  fid <- H5Fopen(file)  
-  on.exit(H5Fclose(fid))
+    if(is.character(file)) {
+        fid <- H5Fopen(file)
+        on.exit(H5Fclose(fid))
+    } else {
+        fid <- file
+    }
   
-  ## is there any template data?
-  exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
-  if(exists) {
-    gid <- H5Gopen(fid, paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
-    did <- H5Dopen(gid, "Fastq")
-    fastq <- H5Dread(did)
+    ## is there any template data?
+    exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
+    if(exists) {
+        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
+        did <- H5Dopen(gid, "Fastq")
+        fastq <- H5Dread(did)
+        
+        H5Dclose(did)
+        H5Gclose(gid)
+    }
     
-    H5Dclose(did)
-    H5Gclose(gid)
-  }
-  
-  return(fastq)
+    return(fastq)
 }
