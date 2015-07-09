@@ -64,8 +64,12 @@
 
 .getReadChannelMux <- function(file) {
     
-    fid <- H5Fopen(file)
-    on.exit(H5Fclose(fid))
+    if(is.character(file)) {
+        fid <- H5Fopen(file)
+        on.exit(H5Fclose(fid))
+    } else {
+        fid <- file
+    }
     
     # here we get the starting mux and the read number from the channel
     exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
@@ -106,8 +110,12 @@
 
 .getSummaryRaw <- function(file) {
     
-    fid <- H5Fopen(file)
-    on.exit(H5Fclose(fid))
+    if(is.character(file)) {
+        fid <- H5Fopen(file)
+        on.exit(H5Fclose(fid))
+    } else {
+        fid <- file
+    }
     
     exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
     if(!exists) {
@@ -167,8 +175,12 @@
 
 .getSummaryBaseCalled <- function(file, strand = "template") {
     
-    fid <- H5Fopen(file)
-    on.exit(H5Fclose(fid))
+    if(is.character(file)) {
+        fid <- H5Fopen(file)
+        on.exit(H5Fclose(fid))
+    } else {
+        fid <- file
+    }
     
     exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/Summary/basecall_1d_", strand))
     if(!exists) {
