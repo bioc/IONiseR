@@ -40,6 +40,14 @@
     return(out)
 }
 
+.passFailStatus <- function(path) {
+    if(!grepl('pass|fail', path)) {
+        return(NA)
+    } else {
+        return( grepl('pass', path) )
+    }
+}
+
 ## The sampling is how many times the signal is recorded per second.
 ## We use this to convert the 'duration' and 'start_time' in the raw data
 ## into seconds.  It may also be useful meta data
