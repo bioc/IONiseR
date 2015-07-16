@@ -174,3 +174,14 @@ plotCurrentByTime <- function(summaryData) {
 }
 
 
+
+readTypesByTime <- function(summaryData, minute_group = 60) {
+    tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
+        filter(strand == "template") %>%
+        group_by(time_group = start_time %/% (60 * minute_group), full_2D, pass) %>%
+        summarise(count = n(), hour = (time_group * minute_group)/60 )
+    
+    ggplot(tmp, aes(x = hour, y = count, colour = interaction(full_2D, pass))) + geom_point(size = 3)
+}
+
+
