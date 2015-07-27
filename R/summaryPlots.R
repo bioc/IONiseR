@@ -100,6 +100,27 @@ plotReadAccumulation <- function(summaryData, title = "") {
 }
 
 
+#' Plot the accumulation of reads over the duration of the experiment.
+#' @param summaryData Object of class \linkS4class{Fast5Summary}.
+#' @param title Character string specifying the plot title.
+#' @return Returns an object of class \code{gg} representing the plot.
+#' @examples
+#' if( require(minionSummaryData) ) {
+#'    data(s.typhi.rep2, package = 'minionSummaryData')
+#'    plotReadAccumulation( s.typhi.rep2 )
+#' }
+#' @export
+#' @importFrom dplyr group_by summarise mutate order_by with_order n
+plotYield <- function(summaryData, title = "") {
+    readAccumulation <- group_by(rawData(summaryData), minute = start_time %/% 60) %>%
+        summarise(new_reads = n()) %>%
+        mutate(accumulation = order_by(minute, cumsum(new_reads)))
+    ggplot(readAccumulation, aes(x = minute, y = accumulation)) + 
+        geom_point() + 
+        ylab("reads produced") +
+        ggtitle(title)
+}
+
 #' Plot the mean rate at which events occur 
 #' 
 #' For each read, the ratio between the number of events comprising the read and the time spent in the pore is calculated.  This is then plotted against the time the read entered the pore, allow us to assess whether the rate at which events occur changes during the experiment run time.
@@ -175,13 +196,17 @@ plotCurrentByTime <- function(summaryData) {
 
 
 
-readTypesByTime <- function(summaryData, minute_group = 60) {
+readTypesByTime <- function(summaryData, minute_group = 10) {
     tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
         filter(strand == "template") %>%
         group_by(time_group = start_time %/% (60 * minute_group), full_2D, pass) %>%
         summarise(count = n(), hour = (time_group * minute_group)/60 )
     
-    ggplot(tmp, aes(x = hour, y = count, colour = interaction(full_2D, pass))) + geom_point(size = 3)
+    ggplot(tmp, aes(x = hour, y = count, colour = interaction(full_2D, pass))) + 
+        geom_point(size = 3) +
+    scale_colour_manual(values=c("#999999", "#E69F00", "#56B4E9"), 
+                      name="Category",
+                      labels=c("Not 2D", "2D - Fail", "2D - Pass"))
 }
 
 
