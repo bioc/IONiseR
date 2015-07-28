@@ -196,11 +196,11 @@ plotCurrentByTime <- function(summaryData) {
 
 
 
-readTypesByTime <- function(summaryData, minute_group = 10) {
+readTypesByTime <- function(summaryData, groupedMinutes = 10) {
     tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
         filter(strand == "template") %>%
-        group_by(time_group = start_time %/% (60 * minute_group), full_2D, pass) %>%
-        summarise(count = n(), hour = (time_group * minute_group)/60 )
+        group_by(time_group = start_time %/% (60 * groupedMinutes), full_2D, pass) %>%
+        summarise(count = n(), hour = (time_group * groupedMinutes)/60 )
     
     ggplot(tmp, aes(x = hour, y = count, colour = interaction(full_2D, pass))) + 
         geom_point(size = 3) +
@@ -209,4 +209,22 @@ readTypesByTime <- function(summaryData, minute_group = 10) {
                       labels=c("Not 2D", "2D - Fail", "2D - Pass"))
 }
 
+
+plot2DYield <- function(summaryData, groupedMinutes = 1) {
+    
+    only2d <- .get2D(summaryData)
+    tmp.fq <- fastq(only2d)[grep("2D", id(fastq(only2d))),]
+    
+    tmp <- inner_join(readInfo(only2d), data.table(id = IONiseR:::.idFromFASTQ(tmp.fq), nbases = width(tmp.fq)), by = "id")
+    tmp <- inner_join(tmp, baseCalled(only2d), by = "id")
+    
+    readAccumulation <- group_by(tmp, time_group = start_time %/% (60 * groupedMinutes), pass) %>%
+        summarise(nbases = sum(nbases), hour = (time_group * groupedMinutes)/60 ) %>%
+        arrange(time_group) %>%
+        group_by(pass) %>%
+        mutate(accumulation = order_by(time_group, cumsum(nbases)))
+    ggplot(readAccumulation, aes(x = hour, y = accumulation, colour = pass)) + 
+        geom_point() + 
+        ylab("bases produced")
+}
 
