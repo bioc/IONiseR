@@ -66,6 +66,14 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     
 }
 
+.get2D <- function(summaryData) {
+    
+    ids <- filter(baseCalled(summaryData), strand == "template", full_2D == TRUE)[,id]
+    idx <- which(readInfo(summaryData)[,id] %in% ids)
+    return(summaryData[idx,])
+}
+
+
 #' Extract template reads
 #' 
 #' This generic function accesses the fastq slot stored in an object derived 
