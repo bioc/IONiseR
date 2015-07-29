@@ -20,6 +20,7 @@
 readFast5Summary <- function(files) {
     
     ## some files can't be opened, so we filter them here
+    message("Checking file validity")
     fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
     files <- files[ which(fileStatus) ]
     
@@ -164,7 +165,7 @@ readFast5Summary2 <- function(files) {
     ## if we skipped any files, tell the user
     if(length(which(readInfo[,id] == 0))) {
         message("Error open the following files, files were ignored:")
-        message(paste0(files[ which(readInfo[,id] == 0) ]), collapse = "\n")
+        message(paste0(files[ which(readInfo[,id] == 0) ], collapse = "\n"))
     }
     ## filter entries where no data were recorded
     readInfo <- filter(readInfo, id > 0)

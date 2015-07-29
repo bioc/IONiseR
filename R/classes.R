@@ -59,7 +59,12 @@ setMethod(show, "Fast5Summary", function(object) {
     cat("  |-", nrow(filter(baseCalled(object), strand == "template")), "template strands\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "complement")), "complement strands\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "template", 
-                            full_2D == TRUE)), "full 2D strands\n")
+                            full_2D == TRUE)), "full 2D reads\n")
+    ## if we have pass/fail information, print that too
+    pf <- nrow(filter(readInfo(object), !is.na(pass)))
+    if(pf) {
+        cat("  |-", nrow(filter(readInfo(object), pass==TRUE)), "pass reads")
+    }
 })
 
 #' @describeIn Fast5Summary Returns the number of files read during creation of the object
