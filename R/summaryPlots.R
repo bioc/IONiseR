@@ -16,10 +16,20 @@ plotReadCategoryCounts <- function(summaryData) {
              count(baseCalled(summaryData), strand)[,n],
              count(baseCalled(summaryData), full_2D)[2,n] / 2)
     
-    res <- data.table(category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D'),
-                                        levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D')),   
-                      count = tab)
-    
+    pass <- count(readInfo(summaryData), pass)
+    if(any(pass[,pass], na.rm = TRUE)) {
+        tab <- c(tab, pass[pass==TRUE,n])
+        res <- data.table(
+            category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass'),
+                              levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass')),   
+            count = tab)
+    } else {
+        res <- data.table(
+            category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D'),
+                              levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D')),   
+            count = tab)
+    }
+
     ggplot(res, aes(x = category, y = count, fill = category)) + 
         geom_bar(stat = 'identity') +
         xlab('read type') +
