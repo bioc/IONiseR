@@ -206,7 +206,7 @@ plotCurrentByTime <- function(summaryData) {
 
 
 
-readTypesByTime <- function(summaryData, groupedMinutes = 10) {
+plotReadTypesByTime <- function(summaryData, groupedMinutes = 10) {
     tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
         filter(strand == "template") %>%
         group_by(time_group = start_time %/% (60 * groupedMinutes), full_2D, pass) %>%
@@ -238,3 +238,35 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
         ylab("bases produced")
 }
 
+
+channelActivityPlot <- function(summaryData, zScale = NULL, zaverage = TRUE) {
+    
+    tmp <- left_join(readInfo(summaryData), rawData(summaryData), by = 'id') %>%
+        select(id, channel, start_time, duration)
+    
+    ## if we've provided a zvalue, add it to our table and set the column name
+    if(!is.null(zScale)) {
+        setnames(zScale, names(zScale)[ncol(zScale)], "zvalue")
+        tmp <- left_join(tmp, zScale, by = "id")
+    } else {
+        tmp <- mutate(tmp, zvalue = 1)
+    }
+    
+    p1 <- ggplot(NULL) +
+        geom_segment(data = tmp,
+                     mapping = aes(y = channel, yend = channel, 
+                                   x = (start_time / 3600), xend = (start_time + duration) / 3600,
+                                   color = zvalue), 
+                     size = 1) +
+        xlab("hour") +
+        scale_x_continuous(expand = c(0, 0))
+    
+    if(zaverage) {
+        tmp2 <- tmp %>% 
+            group_by(time_bin = start_time %/% 600) %>%
+            summarise(mean_value = mean(zvalue))
+        p1 <- p1 + geom_rect(mutate(tmp2, start_time = (time_bin * 600) / 3600), mapping = aes(xmin = start_time, xmax = start_time + (600/3600), ymin = -100, ymax = -25, fill = mean_value))
+    }
+        
+    p1
+}
