@@ -198,10 +198,10 @@ plotBaseProductionRate <- function(summaryData) {
 #' }
 #' @export
 plotCurrentByTime <- function(summaryData) {
-    ggplot(rawData(summaryData), aes(x = start_time, y = median_signal)) + 
+    ggplot(rawData(summaryData), aes(x = start_time / 3600, y = median_signal)) + 
         geom_point() + 
-        xlab("time (seconds)") +
-        ylab("current (pA)")
+        xlab("hour") +
+        ylab("median current (pA)")
 }
 
 
