@@ -40,12 +40,33 @@
     return(out)
 }
 
+## Determines whether a read is in a pass or fail folder by looking at the path.
+## If neither term is found NA is returned
 .passFailStatus <- function(path) {
     if(!grepl('pass|fail', path)) {
         return(NA)
     } else {
         return( grepl('pass', path) )
     }
+}
+
+.getRunID <- function(file) {
+    
+    fid <- H5Fopen(file)
+    on.exit(H5Fclose(fid))
+    
+    exists <- IONiseR:::.groupExistsObj(fid, group = "/UniqueGlobalKey/tracking_id")
+    if(!exists) {
+        run_id <- NA
+    } else {
+        gid <- H5Gopen(fid, "/UniqueGlobalKey/tracking_id")   
+        aid <- H5Aopen(gid, "run_id")
+        run_id <- H5Aread(aid)
+        H5Aclose(aid)
+        H5Gclose(gid)
+    }
+    return( run_id )
+    
 }
 
 ## The sampling is how many times the signal is recorded per second.
