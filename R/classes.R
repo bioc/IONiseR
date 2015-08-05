@@ -61,9 +61,12 @@ setMethod(show, "Fast5Summary", function(object) {
     cat("  |-", nrow(filter(baseCalled(object), strand == "template", 
                             full_2D == TRUE)), "full 2D reads\n")
     ## if we have pass/fail information, print that too
-    pf <- nrow(filter(readInfo(object), !is.na(pass)))
-    if(pf) {
-        cat("  |-", nrow(filter(readInfo(object), pass==TRUE)), "pass reads")
+    ## we also check that the pass column exists, hopefully we can remove this at some point
+    if("pass" %in% names(readInfo(object))) {
+        pf <- nrow(filter(readInfo(object), !is.na(pass)))
+        if(pf) {
+            cat("  |-", nrow(filter(readInfo(object), pass==TRUE)), "pass reads")
+        }
     }
 })
 

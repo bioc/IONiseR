@@ -16,8 +16,12 @@ plotReadCategoryCounts <- function(summaryData) {
              count(baseCalled(summaryData), strand)[,n],
              count(baseCalled(summaryData), full_2D)[2,n] / 2)
     
-    pass <- count(readInfo(summaryData), pass)
-    if(any(pass[,pass], na.rm = TRUE)) {
+    if("pass" %in% names(readInfo(summaryData))) {
+    pf <- any(count(readInfo(summaryData), pass)[,pass], na.rm = TRUE)
+    } else {
+        pf <- FALSE
+    }
+    if(pf) {
         tab <- c(tab, pass[pass==TRUE,n])
         res <- data.table(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass'),
@@ -68,7 +72,6 @@ plotReadCategoryQuals <- function(summaryData) {
 
 #' Plot the number of active channels for each minute of run time
 #' @param summaryData Object of class \linkS4class{Fast5Summary}.
-#' @param title Character string specifying the plot title.
 #' @return Returns an object of class \code{gg} representing the plot.
 #' @examples
 #' if( require(minionSummaryData) ) {
@@ -77,20 +80,19 @@ plotReadCategoryQuals <- function(summaryData) {
 #' }
 #' @export
 #' @importFrom dplyr summarise count
-plotActiveChannels <- function(summaryData, title = "") {
+plotActiveChannels <- function(summaryData) {
     startEndSummary <- summarise(rawData(summaryData), first = start_time %/% 60, last = (start_time + duration) %/% 60)
     tab <- data.frame(minute = unlist(apply(startEndSummary, 1, function(x) { x[1]:x[2] }))) %>%
         count(minute)
     
-    ggplot(tab, aes(x = minute, y = n)) + 
+    ggplot(tab, aes(x = minute / 60, y = n)) + 
         geom_point() + 
-        ylab("Active Channels") +
-        ggtitle(title)
+        xlab("hour") +
+        ylab("active channels")
 }
 
 #' Plot the accumulation of reads over the duration of the experiment.
 #' @param summaryData Object of class \linkS4class{Fast5Summary}.
-#' @param title Character string specifying the plot title.
 #' @return Returns an object of class \code{gg} representing the plot.
 #' @examples
 #' if( require(minionSummaryData) ) {
@@ -99,14 +101,14 @@ plotActiveChannels <- function(summaryData, title = "") {
 #' }
 #' @export
 #' @importFrom dplyr group_by summarise mutate order_by with_order n
-plotReadAccumulation <- function(summaryData, title = "") {
+plotReadAccumulation <- function(summaryData) {
     readAccumulation <- group_by(rawData(summaryData), minute = start_time %/% 60) %>%
         summarise(new_reads = n()) %>%
         mutate(accumulation = order_by(minute, cumsum(new_reads)))
-    ggplot(readAccumulation, aes(x = minute, y = accumulation)) + 
+    ggplot(readAccumulation, aes(x = minute / 60, y = accumulation)) + 
         geom_point() + 
-        ylab("reads produced") +
-        ggtitle(title)
+        xlab("hour") +
+        ylab("reads produced")
 }
 
 
@@ -239,7 +241,7 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
 }
 
 
-channelActivityPlot <- function(summaryData, zScale = NULL, zaverage = TRUE) {
+channelActivityPlot <- function(summaryData, zScale = NULL, zAverage = TRUE) {
     
     tmp <- left_join(readInfo(summaryData), rawData(summaryData), by = 'id') %>%
         select(id, channel, start_time, duration)
@@ -261,7 +263,7 @@ channelActivityPlot <- function(summaryData, zScale = NULL, zaverage = TRUE) {
         xlab("hour") +
         scale_x_continuous(expand = c(0, 0))
     
-    if(zaverage) {
+    if(zAverage) {
         tmp2 <- tmp %>% 
             group_by(time_bin = start_time %/% 600) %>%
             summarise(mean_value = mean(zvalue))
