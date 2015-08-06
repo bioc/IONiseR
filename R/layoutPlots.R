@@ -46,6 +46,68 @@ channelHeatmap <- function(data, zValue) {
 
 #' Create layout plot of flowcell
 #' 
+#' Creates a plot representing the layout of a MinION flow cell.  Each circle
+#' represents an individual channel with the intensity relecting a specified 
+#' sequencing metric.  This function is a more generalised version of 
+#' \code{\link{layoutPlot}}, allowing the user to map any value the like on 
+#' the channel layout.
+#' @param data A data.frame or data.table.  Should have at least two columns, 
+#' one of which has the name 'channel'.
+#' @param zValue Character string specifying the name of the column to be used 
+#' for the colour scaling.
+#' @return Returns an object of \code{gg} representing the plot.
+#' @examples
+#' library(dplyr)
+#' if( require(minionSummaryData) ) {
+#'    data(s.typhi.rep2, package = 'minionSummaryData')
+#'    ## calculate and plot the mean number of events recorded by each channel
+#'    avgEvents <- left_join(readInfo(s.typhi.rep2), rawData(s.typhi.rep2), by = 'id') %>% 
+#'    group_by(channel) %>% 
+#'    summarise(mean_nevents = mean(num_events))
+#'    channelHeatmap(avgEvents, zValue = 'mean_nevents')
+#' }
+#' @export
+muxHeatmap <- function(data, zValue) {
+    
+    if(!zValue %in% colnames(data)) {
+        stop("Column '", zValue, "' not found")
+    }
+    
+    tmp <- .muxToXY(IONiseR:::.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
+    plottingMap <- data.table(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[,get(zValue)])
+
+    ggplot() +
+        geom_rect(mapping = aes(xmin = 0, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        geom_rect(mapping = aes(xmin = 36, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        geom_rect(data = group_by(muxMap, channel) %>% summarise(row = matrixRow, col = mean(matrixCol)), 
+                  mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5), fill = NA, color = "gray20", alpha = 0.3) +
+        geom_point(data = plottingMap, mapping = aes(x = matrixCol, y = matrixRow, col = zValue), size = 5) +
+        scale_colour_gradient(low="darkblue", high="green") + 
+        theme(panel.background = element_rect(fill = "grey50"), 
+              panel.grid.major = element_line(colour = "grey50"), 
+              panel.grid.minor = element_line(colour = "grey50")) + 
+        scale_x_continuous(breaks=NULL) +
+        scale_y_continuous(breaks=NULL) +
+        xlab("") + 
+        ylab("")
+    
+    ggplot(plottingMap, aes_string(x = "matrixCol", y = "matrixRow", colour = "zValue")) + 
+        geom_rect(mapping = aes(xmin = 0, xmax = 8.5, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        geom_rect(mapping = aes(xmin = 9, xmax = 17.5, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        geom_point(size = 5.5, colour = "black") +
+        geom_point(size = 4.5) + 
+        scale_colour_gradient(low="darkblue", high="green") + 
+        theme(panel.background = element_rect(fill = "grey50"), 
+              panel.grid.major = element_line(colour = "grey50"), 
+              panel.grid.minor = element_line(colour = "grey50")) + 
+        scale_x_continuous(breaks=NULL) +
+        scale_y_continuous(breaks=NULL) +
+        xlab("") + 
+        ylab("")
+}
+
+#' Create layout plot of flowcell
+#' 
 #' Creates a plot representing the layout of a MinION flow cell.  Each circle represents an idividual channel with the intensity relecting the total kilobases of sequence produced.  This only considers reads marked as template or complement, 2D reads are ignored as they are generated from the former two.
 #' @param summaryData Object of class \linkS4class{Fast5Summary}.
 #' @param attribute Character string indicating what to plot. Currently accepted values are: "nreads", "kb", "signal".
@@ -104,4 +166,32 @@ layoutPlot <- function(summaryData, attribute = NULL) {
     return(data.frame(channel = pore+1, matrixRow = row, matrixCol = column))
 }
 
+.muxToXY <- function(channelMap, insertGap = TRUE, shiftRows = TRUE) {
+    
+    muxMap <- data.table(mux = rep(1:4, each = nrow(channelMap)),
+                         rbind(channelMap, channelMap, channelMap, channelMap)) %>%
+        mutate(oddEven = matrixCol %% 2)
 
+    ##odd columns
+    muxMap[mux == 1 & oddEven == 1,matrixCol:=(matrixCol*4)-1]
+    muxMap[mux == 2 & oddEven == 1,matrixCol:=(matrixCol*4)]
+    muxMap[mux == 3 & oddEven == 1,matrixCol:=(matrixCol*4)-3]
+    muxMap[mux == 4 & oddEven == 1,matrixCol:=(matrixCol*4)-2]
+    
+    ##even columns
+    muxMap[mux == 1 & oddEven == 0,matrixCol:=(matrixCol*4)-2]
+    muxMap[mux == 2 & oddEven == 0,matrixCol:=(matrixCol*4)-3]
+    muxMap[mux == 3 & oddEven == 0,matrixCol:=(matrixCol*4)]
+    muxMap[mux == 4 & oddEven == 0,matrixCol:=(matrixCol*4)-1]
+    
+    if(insertGap) {
+        muxMap[matrixCol > 32,matrixCol:=matrixCol+4]
+    }
+    
+    if(shiftRows) {
+        muxMap[as.logical(matrixRow %% 2),matrixCol:=matrixCol-0.5]
+    }
+    
+    muxMap <- select(muxMap, -oddEven)
+    muxMap
+}
