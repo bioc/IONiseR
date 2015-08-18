@@ -4,12 +4,10 @@
 \alias{plotReadAccumulation}
 \title{Plot the accumulation of reads over the duration of the experiment.}
 \usage{
-plotReadAccumulation(summaryData, title = "")
+plotReadAccumulation(summaryData)
 }
 \arguments{
 \item{summaryData}{Object of class \linkS4class{Fast5Summary}.}
-
-\item{title}{Character string specifying the plot title.}
 }
 \value{
 Returns an object of class \code{gg} representing the plot.
