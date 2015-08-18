@@ -64,7 +64,7 @@ channelHeatmap <- function(data, zValue) {
 #'    avgEvents <- left_join(readInfo(s.typhi.rep2), rawData(s.typhi.rep2), by = 'id') %>% 
 #'    group_by(channel) %>% 
 #'    summarise(mean_nevents = mean(num_events))
-#'    channelHeatmap(avgEvents, zValue = 'mean_nevents')
+#'    muxHeatmap(avgEvents, zValue = 'mean_nevents')
 #' }
 #' @export
 muxHeatmap <- function(data, zValue) {
@@ -75,17 +75,23 @@ muxHeatmap <- function(data, zValue) {
     
     tmp <- .muxToXY(IONiseR:::.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
     plottingMap <- data.table(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[,get(zValue)])
+    
+    tmp <- left_join(tmp, group_by(plottingMap, channel) %>% summarise(zValue = mean(zValue)), by = "channel")
 
+    channel_data <- group_by(tmp, channel) %>% 
+        summarise(row = mean(matrixRow), col = mean(matrixCol), meanZValue = mean(zValue))
+    
     ggplot() +
-        geom_rect(mapping = aes(xmin = 0, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
-        geom_rect(mapping = aes(xmin = 36, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
-        geom_rect(data = group_by(muxMap, channel) %>% summarise(row = matrixRow, col = mean(matrixCol)), 
-                  mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5), fill = NA, color = "gray20", alpha = 0.3) +
+       # geom_rect(mapping = aes(xmin = -0.5, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+      #  geom_rect(mapping = aes(xmin = 35.5, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        geom_rect(data = channel_data, 
+                  mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5, fill = meanZValue), color = "gray50", alpha = 0.8) +
         geom_point(data = plottingMap, mapping = aes(x = matrixCol, y = matrixRow, col = zValue), size = 5) +
         scale_colour_gradient(low="darkblue", high="green") + 
-        theme(panel.background = element_rect(fill = "grey50"), 
-              panel.grid.major = element_line(colour = "grey50"), 
-              panel.grid.minor = element_line(colour = "grey50")) + 
+        scale_fill_gradient(na.value = "white", low = "#999999", high = "#E69F00") + 
+        theme(panel.background = element_rect(fill = "white"), 
+              panel.grid.major = element_line(colour = "white"), 
+              panel.grid.minor = element_line(colour = "white")) + 
         scale_x_continuous(breaks=NULL) +
         scale_y_continuous(breaks=NULL) +
         xlab("") + 
