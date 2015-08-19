@@ -112,27 +112,6 @@ plotReadAccumulation <- function(summaryData) {
 }
 
 
-#' Plot the accumulation of reads over the duration of the experiment.
-#' @param summaryData Object of class \linkS4class{Fast5Summary}.
-#' @param title Character string specifying the plot title.
-#' @return Returns an object of class \code{gg} representing the plot.
-#' @examples
-#' if( require(minionSummaryData) ) {
-#'    data(s.typhi.rep2, package = 'minionSummaryData')
-#'    plotReadAccumulation( s.typhi.rep2 )
-#' }
-#' @export
-#' @importFrom dplyr group_by summarise mutate order_by with_order n
-plotYield <- function(summaryData, title = "") {
-    readAccumulation <- group_by(rawData(summaryData), minute = start_time %/% 60) %>%
-        summarise(new_reads = n()) %>%
-        mutate(accumulation = order_by(minute, cumsum(new_reads)))
-    ggplot(readAccumulation, aes(x = minute, y = accumulation)) + 
-        geom_point() + 
-        ylab("reads produced") +
-        ggtitle(title)
-}
-
 #' Plot the mean rate at which events occur 
 #' 
 #' For each read, the ratio between the number of events comprising the read and the time spent in the pore is calculated.  This is then plotted against the time the read entered the pore, allow us to assess whether the rate at which events occur changes during the experiment run time.
@@ -207,8 +186,21 @@ plotCurrentByTime <- function(summaryData) {
 }
 
 
-
-plotReadTypesByTime <- function(summaryData, groupedMinutes = 10) {
+#' View changes in signal against run time.
+#' 
+#' Plots the median recorded current for each fast5 file against the time at 
+#' which the recording began.
+#' 
+#' @param summaryData Object of class \linkS4class{Fast5Summary}.
+#' @param groupedMinutes Integer specifying how many minutes of runtime should be grouped together.
+#' @return Returns an object of class \code{gg} representing the plot.
+#' @examples
+#' if( require(minionSummaryData) ) {
+#'    data(s.typhi.rep2, package = 'minionSummaryData')
+#'    plotReadTypeProduction( s.typhi.rep2 )
+#' }
+#' @export
+plotReadTypeProduction <- function(summaryData, groupedMinutes = 10) {
     tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
         filter(strand == "template") %>%
         group_by(time_group = start_time %/% (60 * groupedMinutes), full_2D, pass) %>%
