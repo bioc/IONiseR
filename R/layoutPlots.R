@@ -73,10 +73,10 @@ muxHeatmap <- function(data, zValue) {
         stop("Column '", zValue, "' not found")
     }
     
-    tmp <- .muxToXY(IONiseR:::.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
+    tmp <- IONiseR:::.muxToXY(IONiseR:::.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
     plottingMap <- data.table(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[,get(zValue)])
     
-    tmp <- left_join(tmp, group_by(plottingMap, channel) %>% summarise(zValue = mean(zValue)), by = "channel")
+    tmp <- left_join(tmp, group_by(plottingMap, channel) %>% summarise(zValue = sum(zValue)), by = "channel")
 
     channel_data <- group_by(tmp, channel) %>% 
         summarise(row = mean(matrixRow), col = mean(matrixCol), meanZValue = mean(zValue))
@@ -85,10 +85,13 @@ muxHeatmap <- function(data, zValue) {
        # geom_rect(mapping = aes(xmin = -0.5, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
       #  geom_rect(mapping = aes(xmin = 35.5, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
         geom_rect(data = channel_data, 
-                  mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5, fill = meanZValue), color = "gray50", alpha = 0.8) +
-        geom_point(data = plottingMap, mapping = aes(x = matrixCol, y = matrixRow, col = zValue), size = 5) +
-        scale_colour_gradient(low="darkblue", high="green") + 
-        scale_fill_gradient(na.value = "white", low = "#999999", high = "#E69F00") + 
+                  mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5, fill = meanZValue), color = "gray40", alpha = 1) +
+        #geom_point(data = plottingMap, mapping = aes(x = matrixCol, y = matrixRow, col = zValue), size = 5) +
+        geom_polygon(data = data.table(id = rep(1:nrow(plottingMap), each = 50), 
+                                       zValue = rep(plottingMap[,zValue], each = 50),
+                                       rbindlist(apply(as.matrix(plottingMap[,4:3, with = FALSE]), 1, circleFun, npoints = 50, diameter = 0.8))), aes(x = x, y = y, group = id, fill = zValue), colour = "grey20") + 
+        #scale_colour_gradient(low="darkblue", high="green") + 
+        scale_fill_gradient(na.value = "white", low = "#999999", high = "orange") + 
         theme(panel.background = element_rect(fill = "white"), 
               panel.grid.major = element_line(colour = "white"), 
               panel.grid.minor = element_line(colour = "white")) + 
@@ -97,19 +100,6 @@ muxHeatmap <- function(data, zValue) {
         xlab("") + 
         ylab("")
     
-    ggplot(plottingMap, aes_string(x = "matrixCol", y = "matrixRow", colour = "zValue")) + 
-        geom_rect(mapping = aes(xmin = 0, xmax = 8.5, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
-        geom_rect(mapping = aes(xmin = 9, xmax = 17.5, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
-        geom_point(size = 5.5, colour = "black") +
-        geom_point(size = 4.5) + 
-        scale_colour_gradient(low="darkblue", high="green") + 
-        theme(panel.background = element_rect(fill = "grey50"), 
-              panel.grid.major = element_line(colour = "grey50"), 
-              panel.grid.minor = element_line(colour = "grey50")) + 
-        scale_x_continuous(breaks=NULL) +
-        scale_y_continuous(breaks=NULL) +
-        xlab("") + 
-        ylab("")
 }
 
 #' Create layout plot of flowcell
@@ -200,4 +190,12 @@ layoutPlot <- function(summaryData, attribute = NULL) {
     
     muxMap <- select(muxMap, -oddEven)
     muxMap
+}
+
+.circleFun <- function(center = c(0,0),diameter = 1, npoints = 100){
+    r = diameter / 2
+    tt <- seq(0,2*pi,length.out = npoints)
+    xx <- center[1] + r * cos(tt)
+    yy <- center[2] + r * sin(tt)
+    return(data.frame(x = xx, y = yy))
 }
