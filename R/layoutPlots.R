@@ -56,16 +56,6 @@ channelHeatmap <- function(data, zValue) {
 #' @param zValue Character string specifying the name of the column to be used 
 #' for the colour scaling.
 #' @return Returns an object of \code{gg} representing the plot.
-#' @examples
-#' library(dplyr)
-#' if( require(minionSummaryData) ) {
-#'    data(s.typhi.rep2, package = 'minionSummaryData')
-#'    ## calculate and plot the mean number of events recorded by each channel
-#'    avgEvents <- left_join(readInfo(s.typhi.rep2), rawData(s.typhi.rep2), by = 'id') %>% 
-#'    group_by(channel) %>% 
-#'    summarise(mean_nevents = mean(num_events))
-#'    muxHeatmap(avgEvents, zValue = 'mean_nevents')
-#' }
 #' @export
 muxHeatmap <- function(data, zValue) {
     
