@@ -17,12 +17,12 @@ plotReadCategoryCounts <- function(summaryData) {
              count(baseCalled(summaryData), full_2D)[2,n] / 2)
     
     if("pass" %in% names(readInfo(summaryData))) {
-    pf <- any(count(readInfo(summaryData), pass)[,pass], na.rm = TRUE)
+        pf <- any(count(readInfo(summaryData), pass)[,pass], na.rm = TRUE)
     } else {
         pf <- FALSE
     }
     if(pf) {
-        tab <- c(tab, pass[pass==TRUE,n])
+        tab <- c(tab, nrow(readInfo(summaryData)[pass == TRUE,]))
         res <- data.table(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass'),
                               levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass')),   
@@ -200,6 +200,7 @@ plotCurrentByTime <- function(summaryData) {
 #'    plotReadTypeProduction( s.typhi.rep2 )
 #' }
 #' @export
+#' @importFrom dplyr left_join
 plotReadTypeProduction <- function(summaryData, groupedMinutes = 10) {
     tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
         filter(strand == "template") %>%
@@ -232,7 +233,32 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
         ylab("bases produced")
 }
 
-
+#' Visualise a specified metric over all channels over time.
+#' 
+#' Plots a line for each fast 5 file, arranged by channel and experiment time 
+#' when the signal was being recorded.  The colour of each line can be 
+#' specified by the user to reflect any metric they wish.  The intention of the
+#' plot is to investigate trends that may appear at specific time points, or 
+#' influence a subset of channels.
+#' 
+#' @param summaryData Object of class \linkS4class{Fast5Summary}.
+#' @param zScale A data.frame containg two columns.  The first must be labelled
+#' 'id' and correspond to id field present in all slots in summaryData.  The 
+#' second column should contain data pertaining to that reads that you wish to
+#' be represented on the coloured z-axis.
+#' @param zAverage.  Logical indicating if a bar showing the mean across all 
+#' channel for the choosen zScale should be shown on the plot. Defaults to
+#' TRUE.
+#' @return Returns an object of class \code{gg} representing the plot.
+#' @examples
+#' if( require(minionSummaryData) ) {
+#'    data(s.typhi.rep3, package = 'minionSummaryData')
+#'    ## we will plot the median raw signal for each read on z-axis
+#'    z_scale = select(rawData(s.typhi.rep3), id, median_signal)
+#'    channelActivityPlot( s.typhi.rep3, zScale = z_scale )
+#' }
+#' @export
+#' @importFrom dplyr left_join
 channelActivityPlot <- function(summaryData, zScale = NULL, zAverage = TRUE) {
     
     tmp <- left_join(readInfo(summaryData), rawData(summaryData), by = 'id') %>%
