@@ -3,6 +3,8 @@
 #' Plots 
 #' 
 #' @param summaryData Object of class \linkS4class{Fast5Summary}.
+#' @param kmerLength Specifies the length of kmers to compare. Defaults to 5 
+#' given the current pentamer reading nature of the nanopores.
 #' @param groupedMinutes Defines how many minutes each grouping of reads spans.
 #' @param only2D  Logical. If TRUE kmers are computed for only full 2D reads.
 #' If FALSE 2D reads are ignored and all available template and complement 
@@ -18,14 +20,14 @@
 #' @importFrom Biostrings oligonucleotideFrequency
 #' @importFrom tidyr spread gather
 #' @importFrom ShortRead sread
-plotKmerFrequencyCorrelation <- function(summaryData, groupedMinutes = 10, only2D = TRUE) {
+plotKmerFrequencyCorrelation <- function(summaryData, kmerLength = 5, groupedMinutes = 10, only2D = TRUE) {
     
     if(only2D) {
         idx <- grep('2D', id(fastq(summaryData)))
     } else {
         idx <- 1:nrow(baseCalled(summaryData))
     }
-    pentamers <- oligonucleotideFrequency(x = sread(fastq(summaryData)[idx]), width = 5, as.prob = TRUE)
+    pentamers <- oligonucleotideFrequency(x = sread(fastq(summaryData)[idx]), width = kmerLength, as.prob = TRUE)
     
     if(only2D) {
         tmp <- data.table(filter(baseCalled(summaryData), strand == "template", full_2D == TRUE), pentamers)
