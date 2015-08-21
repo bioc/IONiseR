@@ -4,11 +4,14 @@
 \alias{plotKmerFrequencyCorrelation}
 \title{Display correlation between pentemer proportions in two time windows}
 \usage{
-plotKmerFrequencyCorrelation(summaryData, groupedMinutes = 10,
-  only2D = TRUE)
+plotKmerFrequencyCorrelation(summaryData, kmerLength = 5,
+  groupedMinutes = 10, only2D = TRUE)
 }
 \arguments{
 \item{summaryData}{Object of class \linkS4class{Fast5Summary}.}
+
+\item{kmerLength}{Specifies the length of kmers to compare. Defaults to 5
+given the current pentamer reading nature of the nanopores.}
 
 \item{groupedMinutes}{Defines how many minutes each grouping of reads spans.}
 

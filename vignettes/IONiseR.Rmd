@@ -180,6 +180,12 @@ channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 plotKmerFrequencyCorrelation( s.typhi.rep3, only2D = FALSE )
 ```
 
+p1 <- channelActivityPlot(ucsc1b, select(rawData(ucsc1b), id, median_signal))
+p2 <- plotKmerFrequencyCorrelation(ucsc1b) + scale_fill_gradient(high = "orange", low = "darkblue")
+grid.arrange(p1, p2, ncol = 2)
+
+![Channel and Kmer correlation](ChannelKmer.png)
+
 # Extracting reads
 
 If you wish to write reads out to a FASTQ file, you can use the `writeFastq()` function from the `ShortRead` package, as shown here:
