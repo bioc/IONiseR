@@ -279,14 +279,16 @@ channelActivityPlot <- function(summaryData, zScale = NULL, zAverage = TRUE) {
                                    color = zvalue), 
                      size = 1) +
         xlab("hour") +
-        scale_x_continuous(expand = c(0, 0))
+        scale_x_continuous(expand = c(0, 0)) 
     
     if(zAverage) {
         tmp2 <- tmp %>% 
             group_by(time_bin = start_time %/% 600) %>%
-            summarise(mean_value = mean(zvalue))
-        p1 <- p1 + geom_rect(mutate(tmp2, start_time = (time_bin * 600) / 3600), mapping = aes(xmin = start_time, xmax = start_time + (600/3600), ymin = -100, ymax = -25, fill = mean_value))
+            summarise(mean_value = mean(zvalue, na.rm = TRUE))
+        p1 <- p1 + geom_rect(mutate(tmp2, start_time = (time_bin * 600) / 3600), mapping = aes(xmin = start_time, xmax = start_time + (600/3600), ymin = -100, ymax = -25, fill = mean_value)) +
+            scale_fill_gradient(low = "darkblue", high = "orange", name = "Average\nacross\nchannels")
+        
     }
         
-    p1
+    p1 + scale_color_gradient(low = "darkblue", high = "orange", name = "Individual\nreads")
 }
