@@ -252,13 +252,14 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
 #' @return Returns an object of class \code{gg} representing the plot.
 #' @examples
 #' if( require(minionSummaryData) ) {
+#'    require(dplyr)
 #'    data(s.typhi.rep3, package = 'minionSummaryData')
 #'    ## we will plot the median raw signal for each read on z-axis
 #'    z_scale = select(rawData(s.typhi.rep3), id, median_signal)
 #'    channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 #' }
 #' @export
-#' @importFrom dplyr left_join
+#' @importFrom dplyr left_join select
 channelActivityPlot <- function(summaryData, zScale = NULL, zAverage = TRUE) {
     
     tmp <- left_join(readInfo(summaryData), rawData(summaryData), by = 'id') %>%

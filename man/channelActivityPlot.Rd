@@ -30,6 +30,7 @@ influence a subset of channels.
 }
 \examples{
 if( require(minionSummaryData) ) {
+   require(dplyr)
    data(s.typhi.rep3, package = 'minionSummaryData')
    ## we will plot the median raw signal for each read on z-axis
    z_scale = select(rawData(s.typhi.rep3), id, median_signal)
