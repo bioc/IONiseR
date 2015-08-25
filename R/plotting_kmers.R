@@ -16,7 +16,7 @@
 #'    plotKmerFrequencyCorrelation( s.typhi.rep3, only2D = FALSE )
 #' }
 #' @export
-#' @importFrom dplyr summarise_each funs
+#' @importFrom dplyr summarise_each funs arrange
 #' @importFrom Biostrings oligonucleotideFrequency
 #' @importFrom tidyr spread gather
 #' @importFrom ShortRead sread
