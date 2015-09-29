@@ -15,14 +15,16 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     ## there are several columns holding information on baseCalled and fastq
     ## we do some manipulation here to get a single index list.
     baseCalledIDX <- select(recordTable, baseCalledTemplate:baseCalledComplement) %>% 
-        gather() %>% 
-        filter(!is.na(value))
-    baseCalledIDX <- baseCalledIDX[,value]
+        gather(key = component, value = idx) %>% 
+        filter(!is.na(idx)) %>%
+        select(idx)
+    baseCalledIDX <- as.vector(baseCalledIDX[,1])
     
     fastqIDX <- select(recordTable, fastqTemplate:fastq2D) %>% 
-        gather() %>% 
-        filter(!is.na(value))
-    fastqIDX <- fastqIDX[,value]
+        gather(key = component, value = idx) %>% 
+        filter(!is.na(idx)) %>%
+        select(idx)
+    fastqIDX <- as.vector(fastqIDX[,1])
     
     initialize(x, 
                 readInfo = x@readInfo[recordTable[,readInfo],],
