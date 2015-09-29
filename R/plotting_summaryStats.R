@@ -246,7 +246,7 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
 #' 'id' and correspond to id field present in all slots in summaryData.  The 
 #' second column should contain data pertaining to that reads that you wish to
 #' be represented on the coloured z-axis.
-#' @param zAverage.  Logical indicating if a bar showing the mean across all 
+#' @param zAverage Logical indicating if a bar showing the mean across all 
 #' channel for the choosen zScale should be shown on the plot. Defaults to
 #' TRUE.
 #' @return Returns an object of class \code{gg} representing the plot.

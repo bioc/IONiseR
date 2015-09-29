@@ -52,5 +52,6 @@ plotKmerFrequencyCorrelation <- function(summaryData, kmerLength = 5, groupedMin
         scale_x_continuous(expand = c(0, 0)) + 
         scale_y_continuous(expand = c(0, 0)) +
         xlab("hour") +
-        ylab("hour")
+        ylab("hour") +
+        scale_fill_gradient(high = "orange", low = "darkblue")
 }
