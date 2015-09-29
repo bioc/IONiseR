@@ -71,7 +71,7 @@ The `Fast5Summary` class has four slots, each of which is designed to store data
   Fast5Summary-class 
   -------------------------
   **readInfo** - All fast5 files contain this level of information 
-  File name, channel, mux 
+  File name, channel, mux, pass/fail status
   **rawData** - If events were recorded this level is populated 
   Median signal, start time, duration, no. of events 
   **baseCalled** - Created if base calling succeeded. Separate entries for each strand 
@@ -169,6 +169,12 @@ p2 <- channelHeatmap(read_count_2D, zValue = 'd2_prop')
 grid.arrange(p1, p2, ncol = 2)
 ```
 
+# Plotting against channel and time
+
+If we want to look at the patterns that affect specific channels, or all channels for specific periods of time, we can use the function `channelActivityPlot()`.  By default this will plot a for every FAST5 file, sorted by channel on the y-axis and the time of the first and last recorded events on the x-axis.  
+
+If provided with a `zScale` argument each line will be colored according to the specified data.  `zScale` expects to be passed a data.frame containing the id of a read, and a column containing the metric of interest.  In the example below we extract the id and median_signal columns from a Fast5Summary object.
+
 ```{r channelActivity, fig.height=4.8, fig.width=10, dev='png', message=FALSE, warning=FALSE}
 data(s.typhi.rep3, package = 'minionSummaryData')
 ## we will plot the median raw signal for each read on z-axis
@@ -176,13 +182,23 @@ z_scale = select(rawData(s.typhi.rep3), id, median_signal)
 channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 ```
 
-```{r pentamerCorrelation, fig.height=6, fig.width=8, dev='png', message=FALSE, warning=FALSE}
+Small numbers of reads with extreme values can compress the colours on the z-axis.  To make time related patterns easier to pick out reads across all channels are grouped by the starting time, and the mean value for all reads in the group is calculated and shown along the bottom of the plot.
+
+# Pentamer content
+
+Given that the sequence of a read is inferred from the recorded signal, one might wish to see if fluctuations in current over time are reflected in the base content of the reads produced.  The function `plotKmerFrequencyCorrelation()` breaks reads into groups by the time the read was first entered a pore.  The distribution of kmer (defaults to pentamers, but can be specified using the `kmerLength` argument) frequencies is then calculated for each window.  The correlation between each window and all others is then plotted, allowing one to see if the kmer content alters during run time.  The argument `only2D` switches between using the recorded template and complement strands, or the consensus 2D sequence.
+
+```{r pentamerCorrelation, fig.height=5, fig.width=6.5, dev='png', message=FALSE, warning=FALSE}
 plotKmerFrequencyCorrelation( s.typhi.rep3, only2D = FALSE )
 ```
 
-p1 <- channelActivityPlot(ucsc1b, select(rawData(ucsc1b), id, median_signal))
-p2 <- plotKmerFrequencyCorrelation(ucsc1b) + scale_fill_gradient(high = "orange", low = "darkblue")
+The data included in `minionSummaryData` are very early in the life span of the MinION device, with a relatively smaller number of reads produced by only a few channels.  The following plots are created using a more recent, but currently unpublished, set of data.  Distinct waves in the average signal can be seen, although this doesn't seem to greatly impact the pentamer content of the resulting reads.
+
+```{r combinedplots, eval=FALSE}
+p1 <- channelActivityPlot(dat, select(rawData(dat), id, median_signal))
+p2 <- plotKmerFrequencyCorrelation(dat)
 grid.arrange(p1, p2, ncol = 2)
+```
 
 ![Channel and Kmer correlation](ChannelKmer.png)
 
