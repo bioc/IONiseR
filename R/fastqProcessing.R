@@ -56,15 +56,23 @@
         fid <- file
     }
   
-    ## is there any template data?
+    ## is there any data, and does it fall under 2D or 1D?
     exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
+    d <- "2D"
+    if(!exists) {  ## recently template/complement have moved to a 1D folder, so we look there too
+        exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_1D_000/BaseCalled_", strand))
+        d <- "1D"
+    }
+    
     if(exists) {
-        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
+        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand))
         did <- H5Dopen(gid, "Fastq")
         fastq <- H5Dread(did)
         
         H5Dclose(did)
         H5Gclose(gid)
+    } else {
+        fastq <- NULL
     }
     
     return(fastq)
