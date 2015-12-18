@@ -211,18 +211,23 @@
         fid <- file
     }
     
-    exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/Summary/basecall_1d_", strand))
+    ## we have to cope with data being under either 1D or 2D file structure
+    for(d in c("1D", "2D")) {
+        exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_000/Summary/basecall_1d_", strand))
+        if(exists) break;
+    }
+    
     if(!exists) {
         num_events <- duration <- start_time <- NA
     } else {
         ## Open the group and read the attribute we want
-        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_2D_000/Summary/basecall_1d_", strand))
+        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_000/Summary/basecall_1d_", strand))
         aid <- H5Aopen(gid, "num_events")
         num_events <- H5Aread(aid)
         H5Aclose(aid)   
         H5Gclose(gid)
         
-        did <- H5Dopen(fid, paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand, "/Events"))   
+        did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Events"))   
         aid <- H5Aopen(did, "duration")
         duration <- H5Aread(aid)
         H5Aclose(aid)
