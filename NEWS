@@ -1,9 +1,12 @@
-IONiseR v1.1.1
+IONiseR v1.1.x
 ==============
 
 Changes:
 
 * Started updating code to cope with new fast5 file structure
+
+* Fixed bug where reading failed if no 2D reads were present in the collection
+    of fast5 files
 
 
 IONiseR v0.0.1 (Release date: 2015-05-27)

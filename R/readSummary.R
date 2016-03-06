@@ -72,14 +72,12 @@ readFast5Summary <- function(files) {
     ## we haven't read anything about 2D reads yet, so we need to identify which
     ## files have them.  Then we'll read only those
     idx2D <- which(sapply(files, .groupExistsString, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D")))
-    fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D")
-    fq_2D <- .processFastqVec(fq_2D, readIDs = readInfo[idx2D, id], appendID = "_2D")  
-    fastq_2D <- fq_2D$fastq
-    ## if there are any invalid entries we need to remove them
-    if(length(fq_2D$invalid)) {
-        twoD <- twoD[-fq_c$invalid,]
+    if(length(idx2D)) {
+        fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D")
+        fq_2D <- .processFastqVec(fq_2D, readIDs = readInfo[idx2D, id], appendID = "_2D")  
+        fastq_2D <- fq_2D$fastq
     }
-    
+
     ## We update the individual strands to indicate if they are part of a full 2D read
     template <- data.table(template, full_2D = template[,id] %in% idx2D)
     complement <- data.table(complement, full_2D = complement[,id] %in% idx2D)
@@ -87,7 +85,9 @@ readFast5Summary <- function(files) {
     ## combine the template, complement and 2D data
     baseCalled <- rbind(template, complement)
     fastq <- append(fastq_template, fastq_complement)
-    fastq <- append(fastq, fastq_2D)
+    if(length(idx2D)) {
+        fastq <- append(fastq, fastq_2D)
+    }
     
     message("Done")
     obj <- new("Fast5Summary", readInfo = readInfo, rawData = rawData, baseCalled = baseCalled, fastq = fastq)
