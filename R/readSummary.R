@@ -98,6 +98,7 @@ readFast5Summary <- function(files) {
 
 
 ## work file by file, rather than by data type
+## doens't seem to be any faster though
 readFast5Summary2 <- function(files) {
     
     readInfo <- data.table(id = integer(length = length(files)),
@@ -195,6 +196,7 @@ readFast5Summary2 <- function(files) {
 
 
 ## work file by file, rather than by data type
+#' @importFrom utils setTxtProgressBar txtProgressBar
 readFast5Summary3 <- function(files) {
     
     readInfo <- data.table(id = integer(length = length(files)),
@@ -296,6 +298,7 @@ readFast5Summary3 <- function(files) {
 
 
 ## work file by file, rather than by data type
+#' @importFrom utils untar
 readFast5SummaryTar <- function(tarfile, chunkSize = 100) {
     
     ## find the path to any fast5 files in the tar archive

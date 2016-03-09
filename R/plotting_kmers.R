@@ -20,6 +20,7 @@
 #' @importFrom Biostrings oligonucleotideFrequency
 #' @importFrom tidyr spread gather
 #' @importFrom ShortRead sread
+#' @importFrom stats cor
 plotKmerFrequencyCorrelation <- function(summaryData, kmerLength = 5, groupedMinutes = 10, only2D = TRUE) {
     
     if(only2D) {
