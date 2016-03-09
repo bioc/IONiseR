@@ -44,7 +44,8 @@
 #' where NUM matches with the id column in the other slots and STRAND indicates 
 #' whether the read is template, complement or 2D.
 #' @return An object of class Fast5Summary
-#' @export
+#' @name Fast5Summary-class
+#' @exportClass Fast5Summary
 setClass("Fast5Summary",
          slots = list(readInfo = "data.table",
                       rawData = "data.table",

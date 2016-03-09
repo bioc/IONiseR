@@ -72,6 +72,7 @@
 ## The sampling is how many times the signal is recorded per second.
 ## We use this to convert the 'duration' and 'start_time' in the raw data
 ## into seconds.  It may also be useful meta data
+#' @importFrom stats median
 .getSamplingRate <- function(file) {
     
     fid <- H5Fopen(file)
