@@ -20,7 +20,7 @@ BiocStyle::markdown()
 
 This package is intended to provide tools for the quality assessment of data produced by Oxford Nanopore's MinION sequencer.  It includes a functions to generate a number plots for examining the statistics that we think will be useful for this task.
 
-However, nanopore sequencing is an emerging and rapidly developing technology.  It is not clear what will be most informative.  We hope that `IONiseR` will provide a framework for visualisation of metrics that we haven't thought of, and welcome feedback at mike.smith@cruk.cam.ac.uk.
+However, nanopore sequencing is an emerging and rapidly developing technology.  It is not clear what will be most informative.  We hope that `IONiseR` will provide a framework for visualisation of metrics that we haven't thought of, and welcome feedback at mike.smith@embl.de.
 
 ## Getting started
 
