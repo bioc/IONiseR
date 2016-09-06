@@ -9,6 +9,7 @@
 #' @importFrom dplyr select
 #' @importFrom tidyr gather
 #' @importFrom XVector compact
+#' @importFrom methods initialize
 setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     recordTable <- .matchRecords(x)[i,]
     
