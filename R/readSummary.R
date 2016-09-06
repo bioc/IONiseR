@@ -51,8 +51,8 @@ readFast5Summary <- function(files) {
     
     message("Reading Template FASTQ")
     ## get the fastq for those that have it
-    fq_t <- sapply(files[ template[,id] ], .getFastqString, strand = "template")
-    fq_t <- .processFastqVec(fq_t, readIDs = template[, id], appendID = "_template")  
+    fq_t <- sapply(files[ template[,'id'] ], .getFastqString, strand = "template")
+    fq_t <- .processFastqVec(fq_t, readIDs = template[, 'id'], appendID = "_template")  
     fastq_template <- fq_t$fastq
     ## if there are any invalid entries we need to remove them
     if(length(fq_t$invalid)) {
@@ -60,8 +60,8 @@ readFast5Summary <- function(files) {
     }
     
     message("Reading Complement FASTQ")
-    fq_c <- sapply(files[ complement[,id] ], .getFastqString, strand = "complement")
-    fq_c <- .processFastqVec(fq_c, readIDs = complement[, id], appendID = "_complement")  
+    fq_c <- sapply(files[ complement[,'id'] ], .getFastqString, strand = "complement")
+    fq_c <- .processFastqVec(fq_c, readIDs = complement[, 'id'], appendID = "_complement")  
     fastq_complement <- fq_c$fastq
     ## if there are any invalid entries we need to remove them
     if(length(fq_c$invalid)) {
@@ -79,8 +79,8 @@ readFast5Summary <- function(files) {
     }
 
     ## We update the individual strands to indicate if they are part of a full 2D read
-    template <- data.table(template, full_2D = template[,id] %in% idx2D)
-    complement <- data.table(complement, full_2D = complement[,id] %in% idx2D)
+    template <- data.table(template, full_2D = template[,'id'] %in% idx2D)
+    complement <- data.table(complement, full_2D = complement[,'id'] %in% idx2D)
     
     ## combine the template, complement and 2D data
     baseCalled <- rbind(template, complement)
@@ -90,7 +90,7 @@ readFast5Summary <- function(files) {
     }
     
     message("Done")
-    obj <- new("Fast5Summary", readInfo = readInfo, rawData = rawData, baseCalled = baseCalled, fastq = fastq)
+    obj <- new("Fast5Summary", readInfo = readInfo, rawData = data.table(rawData), baseCalled = baseCalled, fastq = fastq)
     
     return(obj)
 }
@@ -123,7 +123,7 @@ readFast5Summary2 <- function(files) {
     
     fastq_t_vec <- fastq_c_vec <- fastq_2d_vec <- character(length = length(files))
             
-    samplingRate <- IONiseR:::.getSamplingRate(files[1])
+    samplingRate <- .getSamplingRate(files[1])
     
     pb = txtProgressBar(min = 0, max = length(files), initial = 0, style = 3) 
     
@@ -131,7 +131,7 @@ readFast5Summary2 <- function(files) {
         
         setTxtProgressBar(pb, value = i)
         
-        fileStatus <- suppressMessages(IONiseR:::.checkOpening( files[i] ))
+        fileStatus <- suppressMessages(.checkOpening( files[i] ))
         if(!fileStatus) {
             next()
         }
@@ -139,27 +139,27 @@ readFast5Summary2 <- function(files) {
         fid <- H5Fopen(files[i])
 
         ## Read Channel Data
-        rcm <- IONiseR:::.getReadChannelMux( fid )
-        readInfo[i,] <- cbind(i, basename(files[i]), rcm, IONiseR:::.passFailStatus(files[i]))
+        rcm <- .getReadChannelMux( fid )
+        readInfo[i,] <- cbind(i, basename(files[i]), rcm, .passFailStatus(files[i]))
         ## Read Raw Data
-        raw <- IONiseR:::.getSummaryRaw( fid )
+        raw <- .getSummaryRaw( fid )
         rawData[i,] <- cbind(i, raw[1:2] / samplingRate, raw[3:4])
         
         ## Template data
-        template <- IONiseR:::.getSummaryBaseCalled(fid, strand = "template")
+        template <- .getSummaryBaseCalled(fid, strand = "template")
         templateData[i,] <- cbind(i, template)
         ## Complement data
-        complement <- IONiseR:::.getSummaryBaseCalled(fid, strand = "complement")
+        complement <- .getSummaryBaseCalled(fid, strand = "complement")
         complementData[i,] <- cbind(i, complement)
         
         if(!is.na(template[1,num_events]))
-            fastq_t_vec[i] <- IONiseR:::.getFastqString(fid, strand = "template")
+            fastq_t_vec[i] <- .getFastqString(fid, strand = "template")
         if(!is.na(complement[1,num_events]))
-            fastq_c_vec[i] <- IONiseR:::.getFastqString(fid, strand = "complement")
+            fastq_c_vec[i] <- .getFastqString(fid, strand = "complement")
         
         ## reading 2D fastq
-        if(IONiseR:::.groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D"))) {
-            fastq_2d_vec[i] <- IONiseR:::.getFastqString(fid, strand = "2D")
+        if(.groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D"))) {
+            fastq_2d_vec[i] <- .getFastqString(fid, strand = "2D")
         }
         H5Fclose(fid)
     }
@@ -178,11 +178,11 @@ readFast5Summary2 <- function(files) {
     complementData <- mutate(complementData, full_2D = complementData[,id] %in% which(nchar(fastq_2d_vec) > 0))
     
     ## process the fastq strings into objects
-    fq_t <- IONiseR:::.processFastqVec(fastq_t_vec, readIDs = templateData[,id], appendID = "_template")
+    fq_t <- .processFastqVec(fastq_t_vec, readIDs = templateData[,id], appendID = "_template")
     fastq_template <- fq_t$fastq
-    fq_c <- IONiseR:::.processFastqVec(fastq_c_vec, readIDs = complementData[,id], appendID = "_complement")
+    fq_c <- .processFastqVec(fastq_c_vec, readIDs = complementData[,id], appendID = "_complement")
     fastq_complement <- fq_c$fastq
-    fq_2D <- IONiseR:::.processFastqVec(fastq_2d_vec, readIDs = which(nchar(fastq_2d_vec) > 0), appendID = "_2D")
+    fq_2D <- .processFastqVec(fastq_2d_vec, readIDs = which(nchar(fastq_2d_vec) > 0), appendID = "_2D")
     fastq_2D <- fq_2D$fastq
     ## combine the template, complement and 2D data
     baseCalled <- rbind(templateData, complementData)
@@ -221,7 +221,7 @@ readFast5Summary3 <- function(files) {
     
     fastq_t_vec <- fastq_c_vec <- fastq_2d_vec <- character(length = length(files))
     
-    samplingRate <- IONiseR:::.getSamplingRate(files[1])
+    samplingRate <- .getSamplingRate(files[1])
     
     pb = txtProgressBar(min = 0, max = length(files), initial = 0, style = 3) 
     
@@ -229,7 +229,7 @@ readFast5Summary3 <- function(files) {
         
         setTxtProgressBar(pb, value = i)
         
-        fileStatus <- suppressMessages(IONiseR:::.checkOpening( files[i] ))
+        fileStatus <- suppressMessages(.checkOpening( files[i] ))
         if(!fileStatus) {
             next()
         }
@@ -237,30 +237,30 @@ readFast5Summary3 <- function(files) {
         fid <- H5Fopen(files[i])
         
         ## Read Channel Data
-        rcm <- IONiseR:::.getReadChannelMux( fid )
-        readInfo[i,] <- cbind(i, basename(files[i]), rcm, IONiseR:::.passFailStatus(files[i]))
+        rcm <- .getReadChannelMux( fid )
+        readInfo[i,] <- cbind(i, basename(files[i]), rcm, .passFailStatus(files[i]))
         ## Read Raw Data
-        raw <- IONiseR:::.getSummaryRaw( fid )
+        raw <- .getSummaryRaw( fid )
         rawData[i,1] <- i
         rawData[i,2:3] <- raw[i,1:2] / samplingRate
         rawData[i,4:5] <- raw[3:4] 
         
         ## Template data
-        template <- IONiseR:::.getSummaryBaseCalled(fid, strand = "template")
+        template <- .getSummaryBaseCalled(fid, strand = "template")
         templateData[i,] <- cbind(i, template)
         ## Complement data
-        complement <- IONiseR:::.getSummaryBaseCalled(fid, strand = "complement")
+        complement <- .getSummaryBaseCalled(fid, strand = "complement")
         complementData[i,1] <- i
         complementData[i,2:5] <- complement
         
         if(!is.na(template[1,num_events]))
-            fastq_t_vec[i] <- IONiseR:::.getFastqString(fid, strand = "template")
+            fastq_t_vec[i] <- .getFastqString(fid, strand = "template")
         if(!is.na(complement[1,num_events]))
-            fastq_c_vec[i] <- IONiseR:::.getFastqString(fid, strand = "complement")
+            fastq_c_vec[i] <- .getFastqString(fid, strand = "complement")
         
         ## reading 2D fastq
-        if(IONiseR:::.groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D"))) {
-            fastq_2d_vec[i] <- IONiseR:::.getFastqString(fid, strand = "2D")
+        if(.groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D"))) {
+            fastq_2d_vec[i] <- .getFastqString(fid, strand = "2D")
         }
         H5Fclose(fid)
     }
@@ -279,11 +279,11 @@ readFast5Summary3 <- function(files) {
     complementData <- mutate(complementData, full_2D = complementData[,id] %in% which(nchar(fastq_2d_vec) > 0))
     
     ## process the fastq strings into objects
-    fq_t <- IONiseR:::.processFastqVec(fastq_t_vec, readIDs = templateData[,id], appendID = "_template")
+    fq_t <- .processFastqVec(fastq_t_vec, readIDs = templateData[,id], appendID = "_template")
     fastq_template <- fq_t$fastq
-    fq_c <- IONiseR:::.processFastqVec(fastq_c_vec, readIDs = complementData[,id], appendID = "_complement")
+    fq_c <- .processFastqVec(fastq_c_vec, readIDs = complementData[,id], appendID = "_complement")
     fastq_complement <- fq_c$fastq
-    fq_2D <- IONiseR:::.processFastqVec(fastq_2d_vec, readIDs = which(nchar(fastq_2d_vec) > 0), appendID = "_2D")
+    fq_2D <- .processFastqVec(fastq_2d_vec, readIDs = which(nchar(fastq_2d_vec) > 0), appendID = "_2D")
     fastq_2D <- fq_2D$fastq
     ## combine the template, complement and 2D data
     baseCalled <- rbind(templateData, complementData)
@@ -344,12 +344,12 @@ readFast5SummaryTar <- function(tarfile, chunkSize = 100) {
         end <- min(j+chunkSize-1, length(files))
         untar(tarfile = tarfile, files = files[j:end], exdir = td)
         chunk_files <- file.path(td, files[j:end])
-        samplingRate <- IONiseR:::.getSamplingRate(chunk_files[1])
+        samplingRate <- .getSamplingRate(chunk_files[1])
         for(i in 1:length(chunk_files)) {
             
             idx <- j + i - 1
             
-            fileStatus <- suppressMessages(IONiseR:::.checkOpening( chunk_files[i] ))
+            fileStatus <- suppressMessages(.checkOpening( chunk_files[i] ))
             if(!fileStatus) {
                 next()
             }
@@ -357,27 +357,27 @@ readFast5SummaryTar <- function(tarfile, chunkSize = 100) {
             fid <- H5Fopen(chunk_files[i])
             
             ## Read Channel Data
-            rcm <- IONiseR:::.getReadChannelMux( fid )
-            readInfo[idx,] <- cbind(idx, basename(chunk_files[i]), rcm, IONiseR:::.passFailStatus(chunk_files[i]))
+            rcm <- .getReadChannelMux( fid )
+            readInfo[idx,] <- cbind(idx, basename(chunk_files[i]), rcm, .passFailStatus(chunk_files[i]))
             ## Read Raw Data
-            raw <- IONiseR:::.getSummaryRaw( fid )
+            raw <- .getSummaryRaw( fid )
             rawData[idx,] <- cbind(idx, raw[1:2] / samplingRate, raw[3:4])
             
             ## Template data
-            template <- IONiseR:::.getSummaryBaseCalled(fid, strand = "template")
+            template <- .getSummaryBaseCalled(fid, strand = "template")
             templateData[idx,] <- cbind(idx, template)
             ## Complement data
-            complement <- IONiseR:::.getSummaryBaseCalled(fid, strand = "complement")
+            complement <- .getSummaryBaseCalled(fid, strand = "complement")
             complementData[idx,] <- cbind(idx, complement)
             
             if(!is.na(template[1,num_events]))
-                fastq_t_vec[idx] <- IONiseR:::.getFastqString(fid, strand = "template")
+                fastq_t_vec[idx] <- .getFastqString(fid, strand = "template")
             if(!is.na(complement[1,num_events]))
-                fastq_c_vec[idx] <- IONiseR:::.getFastqString(fid, strand = "complement")
+                fastq_c_vec[idx] <- .getFastqString(fid, strand = "complement")
             
             ## reading 2D fastq
-            if(IONiseR:::.groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D"))) {
-                fastq_2d_vec[idx] <- IONiseR:::.getFastqString(fid, strand = "2D")
+            if(.groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D"))) {
+                fastq_2d_vec[idx] <- .getFastqString(fid, strand = "2D")
             }
             H5Fclose(fid)
         }
@@ -404,11 +404,11 @@ readFast5SummaryTar <- function(tarfile, chunkSize = 100) {
     complementData <- mutate(complementData, full_2D = complementData[,id] %in% which(nchar(fastq_2d_vec) > 0))
     
     ## process the fastq strings into objects
-    fq_t <- IONiseR:::.processFastqVec(fastq_t_vec, readIDs = templateData[,id], appendID = "_template")
+    fq_t <- .processFastqVec(fastq_t_vec, readIDs = templateData[,id], appendID = "_template")
     fastq_template <- fq_t$fastq
-    fq_c <- IONiseR:::.processFastqVec(fastq_c_vec, readIDs = complementData[,id], appendID = "_complement")
+    fq_c <- .processFastqVec(fastq_c_vec, readIDs = complementData[,id], appendID = "_complement")
     fastq_complement <- fq_c$fastq
-    fq_2D <- IONiseR:::.processFastqVec(fastq_2d_vec, readIDs = which(nchar(fastq_2d_vec) > 0), appendID = "_2D")
+    fq_2D <- .processFastqVec(fastq_2d_vec, readIDs = which(nchar(fastq_2d_vec) > 0), appendID = "_2D")
     fastq_2D <- fq_2D$fastq
     ## combine the template, complement and 2D data
     baseCalled <- rbind(templateData, complementData)

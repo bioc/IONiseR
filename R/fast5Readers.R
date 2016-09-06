@@ -20,6 +20,7 @@
 
 ## Some fast5 files can be corrupt.  This just checks whether we can open them
 ## and returns a boolean result.
+#' @importFrom methods is
 .checkOpening <- function(file) {
     fid <- .H5Fopen_tryCatch(file)
     res <- is(fid,"H5IdComponent")
@@ -55,7 +56,7 @@
     fid <- H5Fopen(file)
     on.exit(H5Fclose(fid))
     
-    exists <- IONiseR:::.groupExistsObj(fid, group = "/UniqueGlobalKey/tracking_id")
+    exists <- .groupExistsObj(fid, group = "/UniqueGlobalKey/tracking_id")
     if(!exists) {
         run_id <- NA
     } else {

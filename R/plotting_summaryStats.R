@@ -13,22 +13,22 @@
 #' @importFrom dplyr summarise count
 plotReadCategoryCounts <- function(summaryData) {
     tab <- c(nrow(readInfo(summaryData)),
-             count(baseCalled(summaryData), strand)[,n],
-             count(baseCalled(summaryData), full_2D)[2,n] / 2)
+             count(baseCalled(summaryData), strand, sort = TRUE)[['n']],
+             count(baseCalled(summaryData), full_2D)[[2,'n']] / 2)
     
     if("pass" %in% names(readInfo(summaryData))) {
-        pf <- any(count(readInfo(summaryData), pass)[,pass], na.rm = TRUE)
+        pf <- any(count(readInfo(summaryData), pass)[['pass']], na.rm = TRUE)
     } else {
         pf <- FALSE
     }
     if(pf) {
         tab <- c(tab, nrow(readInfo(summaryData)[pass == TRUE,]))
-        res <- data.table(
+        res <- data_frame(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass'),
                               levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass')),   
             count = tab)
     } else {
-        res <- data.table(
+        res <- data_frame(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D'),
                               levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D')),   
             count = tab)
@@ -79,10 +79,10 @@ plotReadCategoryQuals <- function(summaryData) {
 #'    plotActiveChannels( s.typhi.rep2 )
 #' }
 #' @export
-#' @importFrom dplyr summarise count
+#' @importFrom dplyr mutate count data_frame
 plotActiveChannels <- function(summaryData) {
-    startEndSummary <- summarise(rawData(summaryData), first = start_time %/% 60, last = (start_time + duration) %/% 60)
-    tab <- data.frame(minute = unlist(apply(startEndSummary, 1, function(x) { x[1]:x[2] }))) %>%
+    startEndSummary <- mutate(rawData(summaryData), first = start_time %/% 60, last = (start_time + duration) %/% 60)
+    tab <- data_frame(minute = unlist(apply(startEndSummary, 1, function(x) { x['first']:x['last'] }))) %>%
         count(minute)
     
     ggplot(tab, aes(x = minute / 60, y = n)) + 
@@ -204,8 +204,10 @@ plotCurrentByTime <- function(summaryData) {
 plotReadTypeProduction <- function(summaryData, groupedMinutes = 10) {
     tmp <- left_join(baseCalled(summaryData), readInfo(summaryData), by = 'id') %>%
         filter(strand == "template") %>%
-        group_by(time_group = start_time %/% (60 * groupedMinutes), full_2D, pass) %>%
-        summarise(count = n(), hour = (time_group * groupedMinutes)/60 )
+        mutate(time_group = start_time %/% (60 * groupedMinutes)) %>%
+        group_by(time_group, full_2D, pass) %>%
+        summarise(count = n()) %>%
+        mutate(hour = (time_group * groupedMinutes)/60 )
     
     ggplot(tmp, aes(x = hour, y = count, colour = interaction(full_2D, pass))) + 
         geom_point(size = 3) +
@@ -220,7 +222,7 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
     only2d <- .get2D(summaryData)
     tmp.fq <- fastq(only2d)[grep("2D", id(fastq(only2d))),]
     
-    tmp <- inner_join(readInfo(only2d), data.table(id = IONiseR:::.idFromFASTQ(tmp.fq), nbases = width(tmp.fq)), by = "id")
+    tmp <- inner_join(readInfo(only2d), data.table(id = .idFromFASTQ(tmp.fq), nbases = width(tmp.fq)), by = "id")
     tmp <- inner_join(tmp, baseCalled(only2d), by = "id")
     
     readAccumulation <- group_by(tmp, time_group = start_time %/% (60 * groupedMinutes), pass) %>%
