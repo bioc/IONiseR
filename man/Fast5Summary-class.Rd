@@ -3,7 +3,7 @@
 \docType{methods}
 \name{readInfo,Fast5Summary-method}
 \alias{Fast5Summary-class}
-\alias{[,Fast5Summary,ANY,ANY-method}
+\alias{[,Fast5Summary,ANY,ANY,ANY-method}
 \alias{baseCalled,Fast5Summary-method}
 \alias{fastq,Fast5Summary-method}
 \alias{fastq2D,Fast5Summary-method}
@@ -22,7 +22,7 @@
 
 \S4method{fastq}{Fast5Summary}(x)
 
-\S4method{[}{Fast5Summary,ANY,ANY}(x, i)
+\S4method{[}{Fast5Summary,ANY,ANY,ANY}(x, i)
 
 \S4method{fastqTemplate}{Fast5Summary}(x)
 

@@ -1,6 +1,7 @@
 ## produce a ShorReadQ object from the fast5 string
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
+#' @importFrom methods new
 .processFastq <- function(string, readID = NULL, appendID = NULL) {
     
     fastqString <- strsplit(string, "\n")[[1]]
