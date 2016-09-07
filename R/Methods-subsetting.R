@@ -9,6 +9,7 @@
 #' @importFrom dplyr select
 #' @importFrom tidyr gather
 #' @importFrom XVector compact
+#' @importFrom methods initialize
 setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     recordTable <- .matchRecords(x)[i,]
     
@@ -27,10 +28,10 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     fastqIDX <- as.vector(fastqIDX[,1])
     
     initialize(x, 
-                readInfo = x@readInfo[recordTable[,readInfo],],
-                rawData = x@rawData[recordTable[,rawData],],
-                baseCalled = x@baseCalled[baseCalledIDX,],
-                fastq = compact(x@fastq[fastqIDX]) )
+               readInfo = x@readInfo[recordTable[,readInfo],],
+               rawData = x@rawData[recordTable[,rawData],],
+               baseCalled = x@baseCalled[baseCalledIDX,],
+               fastq = compact(x@fastq[fastqIDX]) )
 })
 
 
@@ -56,13 +57,13 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     fq_row <- match(ids, fastq_id) + nrow(summaryData@baseCalled)
     
     record_table <- data.table(id = ids, 
-                                readInfo = ri_row,
-                                rawData = rd_row,
-                                baseCalledTemplate = bct_row,
-                                baseCalledComplement = bcc_row,
-                                fastqTemplate = bct_row,
-                                fastqComplement = bcc_row,
-                                fastq2D = fq_row)
+                               readInfo = ri_row,
+                               rawData = rd_row,
+                               baseCalledTemplate = bct_row,
+                               baseCalledComplement = bcc_row,
+                               fastqTemplate = bct_row,
+                               fastqComplement = bcc_row,
+                               fastq2D = fq_row)
     
     return(record_table)
     
@@ -139,11 +140,11 @@ setMethod("fastqTemplate",
 #' 
 #' @export
 setMethod("fastqComplement", 
-        c(x = "Fast5Summary"),
-        function(x) {
-            idx <- which(.readtypeFromFASTQ( fastq(x) ) == 'complement')
-            return( fastq(x)[idx,] )
-        }
+          c(x = "Fast5Summary"),
+          function(x) {
+              idx <- which(.readtypeFromFASTQ( fastq(x) ) == 'complement')
+              return( fastq(x)[idx,] )
+          }
 )
 
 #' @describeIn Fast5Summary Returns ShortReadQ object containing only 2D reads

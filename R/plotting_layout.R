@@ -20,6 +20,7 @@
 #'    summarise(mean_nevents = mean(num_events))
 #'    channelHeatmap(avgEvents, zValue = 'mean_nevents')
 #' }
+#' @importFrom dplyr as_data_frame
 #' @export
 channelHeatmap <- function(data, zValue) {
     
@@ -27,7 +28,7 @@ channelHeatmap <- function(data, zValue) {
         stop("Column '", zValue, "' not found")
     }
     
-    plottingMap <- data.table(.channelToXY(data[,channel], shiftRows = TRUE), zValue = data[,get(zValue)])
+    plottingMap <- as_data_frame(cbind(.channelToXY(data[['channel']], shiftRows = TRUE), zValue = data[[zValue]]))
     
     ggplot(plottingMap, aes_string(x = "matrixCol", y = "matrixRow", colour = "zValue")) + 
         geom_rect(mapping = aes(xmin = 0, xmax = 8.5, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
@@ -63,17 +64,17 @@ muxHeatmap <- function(data, zValue) {
         stop("Column '", zValue, "' not found")
     }
     
-    tmp <- IONiseR:::.muxToXY(IONiseR:::.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
-    plottingMap <- data.table(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[,get(zValue)])
+    tmp <- .muxToXY(.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
+    plottingMap <- data.table(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[[zValue]])
     
     tmp <- left_join(tmp, group_by(plottingMap, channel) %>% summarise(zValue = sum(zValue)), by = "channel")
-
+    
     channel_data <- group_by(tmp, channel) %>% 
         summarise(row = mean(matrixRow), col = mean(matrixCol), meanZValue = mean(zValue))
     
     ggplot() +
-       # geom_rect(mapping = aes(xmin = -0.5, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
-      #  geom_rect(mapping = aes(xmin = 35.5, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        # geom_rect(mapping = aes(xmin = -0.5, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
+        #  geom_rect(mapping = aes(xmin = 35.5, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
         geom_rect(data = channel_data, 
                   mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5, fill = meanZValue), color = "gray40", alpha = 1) +
         #geom_point(data = plottingMap, mapping = aes(x = matrixCol, y = matrixRow, col = zValue), size = 5) +
@@ -110,7 +111,7 @@ muxHeatmap <- function(data, zValue) {
 layoutPlot <- function(summaryData, attribute = NULL) {
     
     if(attribute == "nreads") {
-        res <- group_by(summaryData@readInfo, channel) %>% summarise(nreads = n())
+        res <- group_by(readInfo(summaryData), channel) %>% summarise(nreads = n())
     } else if (attribute == "kb") {
         res <- mutate(baseCalled(summaryData), 
                       seq_length = width(summaryData@fastq[1:nrow(summaryData@baseCalled)]), 
@@ -157,7 +158,7 @@ layoutPlot <- function(summaryData, attribute = NULL) {
     muxMap <- data.table(mux = rep(1:4, each = nrow(channelMap)),
                          rbind(channelMap, channelMap, channelMap, channelMap)) %>%
         mutate(oddEven = matrixCol %% 2)
-
+    
     ##odd columns
     muxMap[mux == 1 & oddEven == 1,matrixCol:=(matrixCol*4)-1]
     muxMap[mux == 2 & oddEven == 1,matrixCol:=(matrixCol*4)]

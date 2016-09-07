@@ -1,3 +1,11 @@
+IONiseR v1.2.3
+==============
+
+Changes:
+
+* Bug fixes to handle different subsetting introduced by combinations of
+    dplyr, tibble, and data.table
+
 IONiseR v1.1.x
 ==============
 

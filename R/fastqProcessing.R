@@ -1,6 +1,7 @@
 ## produce a ShorReadQ object from the fast5 string
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
+#' @importFrom methods new
 .processFastq <- function(string, readID = NULL, appendID = NULL) {
     
     fastqString <- strsplit(string, "\n")[[1]]
@@ -48,14 +49,14 @@
 
 
 .getFastqString <- function(file, strand = "template") {
-  ## returns the unprocess fastq string stored in fast5 files
+    ## returns the unprocess fastq string stored in fast5 files
     if(is.character(file)) {
         fid <- H5Fopen(file)
         on.exit(H5Fclose(fid))
     } else {
         fid <- file
     }
-  
+    
     ## is there any data, and does it fall under 2D or 1D?
     exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
     d <- "2D"
