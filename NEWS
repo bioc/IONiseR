@@ -1,3 +1,8 @@
+IONiseR v1.5.x
+
+* Moved away from data.table to tibble. Hopefully resolves some indexing 
+    issues.
+
 IONiseR v1.1.x
 ==============
 

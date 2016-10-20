@@ -10,7 +10,7 @@ rawData(x)
 \item{x}{Object of class \code{\linkS4class{Fast5Summary}}}
 }
 \value{
-A data.table with 5 columns
+A data.frame with 5 columns
 }
 \description{
 This generic function accesses the rawData slot stored in an object derived 

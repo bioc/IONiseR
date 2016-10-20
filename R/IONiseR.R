@@ -11,7 +11,6 @@
 #' @name IONiseR
 #' 
 #' @import ggplot2
-#' @import data.table
 #' @import rhdf5
 #' 
 #' @importFrom methods setClass setGeneric setMethod

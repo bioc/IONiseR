@@ -1,7 +1,7 @@
 
 #' An S4 class for summarised data from a MinION sequencing run
 #'
-#' @slot readInfo Object of class data.table.  Contains five columns: 
+#' @slot readInfo Object of class tibble.  Contains five columns: 
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the separate 
 #'   slots of this object.
@@ -12,7 +12,7 @@
 #'   to a single channel. Should be in the range 1-4, but if this isn't 
 #'   available it will be 0.
 #' }
-#' @slot rawData Object of class data.table.  Holds summary of events data 
+#' @slot rawData Object of class tibble.  Holds summary of events data 
 #' prior to base calling. Contains five columns: 
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the 
@@ -24,7 +24,7 @@
 #'   this reading. 
 #'   \item median_signal - median of the recorded signals for this set of events.
 #' }
-#' @slot baseCalled Object of class data.table.  For the most part contains 
+#' @slot baseCalled Object of class tibble.  For the most part contains 
 #' similar data to the @@rawData slot, the base called data is derived from it.
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the 
@@ -47,9 +47,9 @@
 #' @name Fast5Summary-class
 #' @exportClass Fast5Summary
 setClass("Fast5Summary",
-         slots = list(readInfo = "data.table",
-                      rawData = "data.table",
-                      baseCalled = "data.table",
+         slots = list(readInfo = "tbl_df",
+                      rawData = "tbl_df",
+                      baseCalled = "tbl_df",
                       fastq = "ShortReadQ"))
 
 

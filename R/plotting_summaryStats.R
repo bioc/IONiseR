@@ -62,7 +62,7 @@ plotReadCategoryQuals <- function(summaryData) {
     readType <- factor(.readtypeFromFASTQ(fq), levels = c('space', 'template', 'complement', '2D'))
     meanBaseQuality <- alphabetScore(quality(fq)) / width(fq) 
     
-    res <- data.table(readType, meanBaseQuality)
+    res <- data.frame(readType, meanBaseQuality)
     ggplot(res, aes(x = readType, y = meanBaseQuality, fill = factor(readType))) + 
         geom_boxplot() +
         xlab('read type') +
@@ -222,7 +222,7 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
     only2d <- .get2D(summaryData)
     tmp.fq <- fastq(only2d)[grep("2D", id(fastq(only2d))),]
     
-    tmp <- inner_join(readInfo(only2d), data.table(id = .idFromFASTQ(tmp.fq), nbases = width(tmp.fq)), by = "id")
+    tmp <- inner_join(readInfo(only2d), tibble(id = .idFromFASTQ(tmp.fq), nbases = width(tmp.fq)), by = "id")
     tmp <- inner_join(tmp, baseCalled(only2d), by = "id")
     
     readAccumulation <- group_by(tmp, time_group = start_time %/% (60 * groupedMinutes), pass) %>%
