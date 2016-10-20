@@ -45,11 +45,11 @@ An S4 class for summarised data from a MinION sequencing run
 }
 \section{Methods (by generic)}{
 \itemize{
-\item \code{readInfo}: Returns readInfo data.table
+\item \code{readInfo}: Returns readInfo data.frame
 
-\item \code{rawData}: Returns rawData data.table
+\item \code{rawData}: Returns rawData data.frame
 
-\item \code{baseCalled}: Returns baseCalled data.table
+\item \code{baseCalled}: Returns baseCalled data.frame
 
 \item \code{fastq}: Returns ShortReadQ object stored in fastq slot.
 
@@ -66,7 +66,7 @@ An S4 class for summarised data from a MinION sequencing run
 \section{Slots}{
 
 \describe{
-\item{\code{readInfo}}{Object of class data.table.  Contains five columns: 
+\item{\code{readInfo}}{Object of class tibble.  Contains five columns: 
 \itemize{
   \item id - an integer key that allows use to match entries in the separate 
   slots of this object.
@@ -78,7 +78,7 @@ An S4 class for summarised data from a MinION sequencing run
   available it will be 0.
 }}
 
-\item{\code{rawData}}{Object of class data.table.  Holds summary of events data 
+\item{\code{rawData}}{Object of class tibble.  Holds summary of events data 
 prior to base calling. Contains five columns: 
 \itemize{
   \item id - an integer key that allows use to match entries in the 
@@ -91,7 +91,7 @@ prior to base calling. Contains five columns:
   \item median_signal - median of the recorded signals for this set of events.
 }}
 
-\item{\code{baseCalled}}{Object of class data.table.  For the most part contains 
+\item{\code{baseCalled}}{Object of class tibble.  For the most part contains 
 similar data to the @rawData slot, the base called data is derived from it.
 \itemize{
   \item id - an integer key that allows use to match entries in the 

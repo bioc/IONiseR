@@ -4,7 +4,7 @@
 #' derived from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
-#' @return A data.table with 5 columns
+#' @return A data.frame with 5 columns
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
@@ -14,7 +14,7 @@ setGeneric("readInfo", function(x) {
     standardGeneric("readInfo")
 })
 
-#' @describeIn Fast5Summary Returns readInfo data.table
+#' @describeIn Fast5Summary Returns readInfo data.frame
 #' 
 #' @export
 setMethod("readInfo", 
@@ -30,7 +30,7 @@ setMethod("readInfo",
 #' from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
-#' @return A data.table with 5 columns
+#' @return A data.frame with 5 columns
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
@@ -40,7 +40,7 @@ setGeneric("rawData", function(x) {
     standardGeneric("rawData")
 })
 
-#' @describeIn Fast5Summary Returns rawData data.table
+#' @describeIn Fast5Summary Returns rawData data.frame
 #' 
 #' @export
 setMethod("rawData", 
@@ -56,7 +56,7 @@ setMethod("rawData",
 #' derived from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
-#' @return A data.table with 6 columns
+#' @return A data.frame with 6 columns
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
@@ -67,7 +67,7 @@ setGeneric("baseCalled", function(x) {
 })
 
 
-#' @describeIn Fast5Summary Returns baseCalled data.table
+#' @describeIn Fast5Summary Returns baseCalled data.frame
 #' 
 #' @export
 setMethod("baseCalled", 

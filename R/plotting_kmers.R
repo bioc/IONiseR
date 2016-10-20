@@ -31,9 +31,9 @@ plotKmerFrequencyCorrelation <- function(summaryData, kmerLength = 5, groupedMin
     pentamers <- oligonucleotideFrequency(x = sread(fastq(summaryData)[idx]), width = kmerLength, as.prob = TRUE)
     
     if(only2D) {
-        tmp <- data.table(filter(baseCalled(summaryData), strand == "template", full_2D == TRUE), pentamers)
+        tmp <- cbind(filter(baseCalled(summaryData), strand == "template", full_2D == TRUE), pentamers)
     } else {
-        tmp <- data.table(baseCalled(summaryData), pentamers)
+        tmp <- cbind(baseCalled(summaryData), pentamers)
     }
     
     tmp2 <- group_by(tmp, time_group = start_time %/% (60 * groupedMinutes)) %>%
@@ -46,7 +46,7 @@ plotKmerFrequencyCorrelation <- function(summaryData, kmerLength = 5, groupedMin
     correlations <- cor(as.matrix(tmp2))
     
     hours <- (as.integer(colnames(correlations)) * groupedMinutes) / 60
-    tmp3 <- data.table(x = rep(hours, each = length(hours)), y = rep(hours, length(hours)), cor = as.vector(correlations))
+    tmp3 <- tibble(x = rep(hours, each = length(hours)), y = rep(hours, length(hours)), cor = as.vector(correlations))
     
     ggplot(tmp3, aes(x = x, y = y, fill = cor)) + 
         geom_raster() +
