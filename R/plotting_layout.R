@@ -5,7 +5,7 @@
 #' sequencing metric.  This function is a more generalised version of 
 #' \code{\link{layoutPlot}}, allowing the user to map any value the like on 
 #' the channel layout.
-#' @param data A data.frame or data.table.  Should have at least two columns, 
+#' @param data A data.frame.  Should have at least two columns, 
 #' one of which has the name 'channel'.
 #' @param zValue Character string specifying the name of the column to be used 
 #' for the colour scaling.
@@ -52,7 +52,7 @@ channelHeatmap <- function(data, zValue) {
 #' sequencing metric.  This function is a more generalised version of 
 #' \code{\link{layoutPlot}}, allowing the user to map any value the like on 
 #' the channel layout.
-#' @param data A data.frame or data.table.  Should have at least two columns, 
+#' @param data A data.frame.  Should have at least two columns, 
 #' one of which has the name 'channel'.
 #' @param zValue Character string specifying the name of the column to be used 
 #' for the colour scaling.
@@ -65,7 +65,7 @@ muxHeatmap <- function(data, zValue) {
     }
     
     tmp <- .muxToXY(.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
-    plottingMap <- data.table(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[[zValue]])
+    plottingMap <- as_tibble(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[[zValue]])
     
     tmp <- left_join(tmp, group_by(plottingMap, channel) %>% summarise(zValue = sum(zValue)), by = "channel")
 
@@ -73,12 +73,9 @@ muxHeatmap <- function(data, zValue) {
         summarise(row = mean(matrixRow), col = mean(matrixCol), meanZValue = mean(zValue))
     
     ggplot() +
-       # geom_rect(mapping = aes(xmin = -0.5, xmax = 33, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
-      #  geom_rect(mapping = aes(xmin = 35.5, xmax = 69, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
         geom_rect(data = channel_data, 
                   mapping = aes(xmax = col+2, xmin = col-2, ymax = row+0.5, ymin = row-0.5, fill = meanZValue), color = "gray40", alpha = 1) +
-        #geom_point(data = plottingMap, mapping = aes(x = matrixCol, y = matrixRow, col = zValue), size = 5) +
-        geom_polygon(data = data.table(id = rep(1:nrow(plottingMap), each = 50), 
+        geom_polygon(data = tibble(id = rep(1:nrow(plottingMap), each = 50), 
                                        zValue = rep(plottingMap[,zValue], each = 50),
                                        rbindlist(apply(as.matrix(plottingMap[,4:3, with = FALSE]), 1, circleFun, npoints = 50, diameter = 0.8))), aes(x = x, y = y, group = id, fill = zValue), colour = "grey20") + 
         #scale_colour_gradient(low="darkblue", high="green") + 
@@ -119,7 +116,8 @@ layoutPlot <- function(summaryData, attribute = NULL) {
             group_by(channel) %>%
             summarise(kb = sum(seq_length) / 1000)  
     } else if (attribute == "signal") {
-        res <- mutate(summaryData@rawData, channel = summaryData@readInfo[match(summaryData@rawData[,id], summaryData@readInfo[,id]), channel]) %>% 
+        res <- mutate(rawData(summaryData), 
+                      channel = summaryData@readInfo[match(summaryData@rawData[,id], summaryData@readInfo[,id]), channel]) %>% 
             group_by(channel) %>% 
             summarise(signal = mean(median_signal))
     } else {
@@ -155,7 +153,7 @@ layoutPlot <- function(summaryData, attribute = NULL) {
 
 .muxToXY <- function(channelMap, insertGap = TRUE, shiftRows = TRUE) {
     
-    muxMap <- data.table(mux = rep(1:4, each = nrow(channelMap)),
+    muxMap <- data.frame(mux = rep(1:4, each = nrow(channelMap)),
                          rbind(channelMap, channelMap, channelMap, channelMap)) %>%
         mutate(oddEven = matrixCol %% 2)
 

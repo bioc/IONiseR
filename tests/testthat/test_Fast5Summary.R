@@ -30,3 +30,9 @@ test_that("acessors work", {
 test_that("Show method prints summary", {
     expect_output(show(f1), regexp = "^Object of class: Fast5Summary")
 })
+
+test_that("Reading FASTQ worked", {
+    expect_equal(length(fastq2D(f1)), 2)
+    expect_equal(length(fastqTemplate(f1)), 2)
+    expect_equal(length(fastqComplement(f1)), 2)
+})

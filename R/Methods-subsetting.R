@@ -56,14 +56,14 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     fastq_id <- fastq_id[-(1:nrow(summaryData@baseCalled))]
     fq_row <- match(ids, fastq_id) + nrow(summaryData@baseCalled)
     
-    record_table <- data.table(id = ids, 
-                                readInfo = ri_row,
-                                rawData = rd_row,
-                                baseCalledTemplate = bct_row,
-                                baseCalledComplement = bcc_row,
-                                fastqTemplate = bct_row,
-                                fastqComplement = bcc_row,
-                                fastq2D = fq_row)
+    record_table <- tibble(id = ids, 
+                           readInfo = ri_row,
+                           rawData = rd_row,
+                           baseCalledTemplate = bct_row,
+                           baseCalledComplement = bcc_row,
+                           fastqTemplate = bct_row,
+                           fastqComplement = bcc_row,
+                           fastq2D = fq_row)
     
     return(record_table)
     

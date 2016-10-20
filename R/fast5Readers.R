@@ -136,7 +136,7 @@
         H5Gclose(gid)
     }
     
-    return( data.frame(read = as.integer(read_number), channel = as.integer(channel_number), mux = as.integer(start_mux)) ) 
+    return( tibble(read = as.integer(read_number), channel = as.integer(channel_number), mux = as.integer(start_mux)) ) 
 }
 
 .getSummaryRaw <- function(file) {
@@ -195,7 +195,7 @@
         ## Open the group
         gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/", read_number_char)) 
         did <- H5Dopen(gid, "Events")
-        events <- data.table(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
+        events <- as_tibble(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
         H5Dclose(did)
         
         H5Gclose(gid)
@@ -238,7 +238,7 @@
         H5Aclose(aid)   
         H5Dclose(did)
     }
-    basecalledStats <- data.table(num_events, duration, start_time, strand)
+    basecalledStats <- tibble(num_events, duration, start_time, strand)
     
     return(basecalledStats)  
 }
@@ -258,7 +258,7 @@
     } else {
         ## Open the group and read
         did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Events"))   
-        events <- data.table(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
+        events <- as_tibble(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
         H5Dclose(did)
     }
 
