@@ -36,3 +36,8 @@ test_that("Reading FASTQ worked", {
     expect_equal(length(fastqTemplate(f1)), 2)
     expect_equal(length(fastqComplement(f1)), 2)
 })
+
+test_that("Catch broken file", {
+    fast5_nw <- system.file('extdata', 'example_not-working.fast5', package = "IONiseR")
+    expect_error(readFast5Summary(fast5_nw), "No files matched the expected fast5 file structure")
+})
