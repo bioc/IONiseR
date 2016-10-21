@@ -4,6 +4,7 @@
 #' @param x Object of class Fast5Summary
 #' @param i Vector defining index to subset by.
 #' 
+#' @docType methods
 #' @export
 #' 
 #' @importFrom dplyr select

@@ -15,7 +15,7 @@
 #' summaryData <- readFast5Summary(fast5files)
 #' }
 #' @export
-#' @importFrom tibble tibble 
+#' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr filter
 #' @importFrom ShortRead append
 #' @importFrom data.table rbindlist
@@ -30,6 +30,15 @@ readFast5Summary <- function(files) {
     readInfo <- lapply(files, .getReadChannelMux)
     readInfo <- rbindlist(readInfo)
     readInfo <- as_tibble(cbind(id = 1:nrow(readInfo), file = basename(files), readInfo))
+    ## if the files don't meet our expected structure, we should catch it here
+    if(all(is.na(readInfo[['read']]))) {
+        stop("No files matched the expected fast5 file structure.\n  Have they been processed and basecalled with MinKNOW?")
+    } else if (length(idx <- which(is.na(readInfo[['read']])))) {
+        message(length(idx), " file(s) did not match the expected structure and have been removed.")
+        readInfo <- readInfo[ -idx, ]
+        readInfo[['id']] <- 1:nrow(readInfo)
+        files <- files[ -idx ]
+    }
     
     message("Reading Raw Data")
     rawData <- lapply(files, .getSummaryRaw)
