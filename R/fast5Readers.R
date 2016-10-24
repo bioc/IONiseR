@@ -284,5 +284,41 @@
 
 
 
+#' Read the log entry from a single fast5 file
+#' 
+#' Basecalling procedures performed on fast5 files generally leave a 
+#' log file entry recording how far through the pipelin the file 
+#' proceeded.  This function will extract this information as a 
+#' single string.  It can be printed in a more readable format 
+#' using the \link{\code{cat()}} function.
+#' 
+#' @param file Character vector of fast5 file to be read.
+#' @return Character vector containing the log information.  
+#' \code{NULL} if no log is found.
+#' @examples 
+#' fast5file <- system.file('extdata', c('example.fast5', package = "IONiseR")
+#' log <- readFast5Log(fast5file)
+#' cat(tmp)
+#' @export
+readFast5Log <- function(file) {
 
+    fid <- H5Fopen(file)
+    on.exit(H5Fclose(fid))
+    
+    log <- NULL
+    
+    for(d in c("1D", "2D")) {
+        path <- paste0("/Analyses/Basecall_", d, "_000/Log")
+        exists <- .groupExistsObj(fid, group = path)
+        if(exists) {
+            did <- H5Dopen(fid, path)
+            log <- c(log, H5Dread(did))
+        }
+    }
+    
+    if(is.null(log))
+        message("No log information found.")
+    
+    return(log)
+}
 
