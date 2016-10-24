@@ -2,6 +2,7 @@ IONiseR v1.5.x
 
 * Moved away from data.table to tibble. Hopefully resolves some indexing 
     issues.
+* Added readFast5Log() to extract process log from fast5 file.
 
 IONiseR v1.1.x
 ==============
