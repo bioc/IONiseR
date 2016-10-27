@@ -28,11 +28,11 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
         select(idx)
     fastqIDX <- as.vector(fastqIDX[,1])
     
-    initialize(x, 
-                readInfo = x@readInfo[recordTable[,readInfo],],
-                rawData = x@rawData[recordTable[,rawData],],
-                baseCalled = x@baseCalled[baseCalledIDX,],
-                fastq = compact(x@fastq[fastqIDX]) )
+    initialize(x,
+               readInfo = readInfo(x)[recordTable[,readInfo],],
+               eventData = eventData(x)[recordTable[,eventData],],
+               baseCalled = baseCalled(x)[baseCalledIDX,],
+               fastq = compact(fastq(x)[fastqIDX]) )
 })
 
 
@@ -50,7 +50,7 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     
     ids <- summaryData@readInfo[,id]
     ri_row <- match(ids, summaryData@readInfo[,id])
-    rd_row <- match(ids, summaryData@rawData[,id])
+    ed_row <- match(ids, eventData(summaryData)[,id])
     bct_row <- match(ids, summaryData@baseCalled[strand == "template",id])
     bcc_row <- match(ids, summaryData@baseCalled[strand == "complement",id]) + nrow(summaryData@baseCalled[strand == "template"])
     fastq_id <- .idFromFASTQ( fastq(summaryData) )
@@ -59,7 +59,7 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     
     record_table <- tibble(id = ids, 
                            readInfo = ri_row,
-                           rawData = rd_row,
+                           eventData = ed_row,
                            baseCalledTemplate = bct_row,
                            baseCalledComplement = bcc_row,
                            fastqTemplate = bct_row,

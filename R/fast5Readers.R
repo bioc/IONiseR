@@ -71,7 +71,7 @@
 }
 
 ## The sampling is how many times the signal is recorded per second.
-## We use this to convert the 'duration' and 'start_time' in the raw data
+## We use this to convert the 'duration' and 'start_time' in the event data
 ## into seconds.  It may also be useful meta data
 #' @importFrom stats median
 .getSamplingRate <- function(file) {
@@ -139,7 +139,7 @@
     return( tibble(read = as.integer(read_number), channel = as.integer(channel_number), mux = as.integer(start_mux)) ) 
 }
 
-.getSummaryRaw <- function(file) {
+.getSummaryEvents <- function(file) {
     
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -178,7 +178,7 @@
     return(data.frame(start_time, duration, num_events, median_signal))  
 }
 
-.getRaw <- function(file) {
+.getEvents <- function(file) {
     
     fid <- H5Fopen(file)
     on.exit(H5Fclose(fid))

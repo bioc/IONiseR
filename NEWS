@@ -1,8 +1,22 @@
+=======
 IONiseR v1.5.x
+
+Changes:
 
 * Moved away from data.table to tibble. Hopefully resolves some indexing 
     issues.
 * Added readFast5Log() to extract process log from fast5 file.
+* Re-named @rawData to @eventData (and relevant accessor methods), no fast5
+    files can have truly raw data.
+
+IONiseR v1.3.x
+==============
+
+Changes:
+
+* Bug fixes to handle different subsetting introduced by combinations of
+    dplyr, tibble, and data.table
+
 
 IONiseR v1.1.x
 ==============
