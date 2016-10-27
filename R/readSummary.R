@@ -40,13 +40,13 @@ readFast5Summary <- function(files) {
         files <- files[ -idx ]
     }
     
-    message("Reading Raw Data")
-    rawData <- lapply(files, .getSummaryRaw)
-    rawData <- as_tibble(cbind(readInfo['id'], rbindlist(rawData)))
+    message("Reading Event Data")
+    eventData <- lapply(files, .getSummaryEvents)
+    eventData <- as_tibble(cbind(readInfo['id'], rbindlist(eventData)))
     ## we convert timing data into seconds. 
     ## To do this we find the sampling rate stored in one file
     samplingRate <- .getSamplingRate(files[1])
-    rawData <- mutate(rawData, 
+    eventData <- mutate(eventData, 
                       start_time = start_time / samplingRate,
                       duration = duration / samplingRate)
     
@@ -101,7 +101,7 @@ readFast5Summary <- function(files) {
     }
     
     message("Done")
-    obj <- new("Fast5Summary", readInfo = readInfo, rawData = rawData, baseCalled = baseCalled, fastq = fastq)
+    obj <- new("Fast5Summary", readInfo = readInfo, eventData = eventData, baseCalled = baseCalled, fastq = fastq)
     
     return(obj)
 }
@@ -119,7 +119,7 @@ readFast5Summary2 <- function(files) {
                            mux = integer(length = length(files)),
                            pass = logical(length = length(files)))
     
-    rawData <- data.table(id = integer(length = length(files)),
+    eventData <- data.table(id = integer(length = length(files)),
                           start_time = numeric(length = length(files)),
                           duration = numeric(length = length(files)), 
                           num_events = integer(length = length(files)),

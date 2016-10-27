@@ -81,7 +81,7 @@ plotReadCategoryQuals <- function(summaryData) {
 #' @export
 #' @importFrom dplyr mutate count data_frame
 plotActiveChannels <- function(summaryData) {
-    startEndSummary <- mutate(rawData(summaryData), first = start_time %/% 60, last = (start_time + duration) %/% 60)
+    startEndSummary <- mutate(eventData(summaryData), first = start_time %/% 60, last = (start_time + duration) %/% 60)
     tab <- data_frame(minute = unlist(apply(startEndSummary, 1, function(x) { x['first']:x['last'] }))) %>%
         count(minute)
     
@@ -102,7 +102,7 @@ plotActiveChannels <- function(summaryData) {
 #' @export
 #' @importFrom dplyr group_by summarise mutate order_by with_order n
 plotReadAccumulation <- function(summaryData) {
-    readAccumulation <- group_by(rawData(summaryData), minute = start_time %/% 60) %>%
+    readAccumulation <- group_by(eventData(summaryData), minute = start_time %/% 60) %>%
         summarise(new_reads = n()) %>%
         mutate(accumulation = order_by(minute, cumsum(new_reads)))
     ggplot(readAccumulation, aes(x = minute / 60, y = accumulation)) + 
@@ -124,7 +124,7 @@ plotReadAccumulation <- function(summaryData) {
 #' }
 #' @export
 plotEventRate <- function(summaryData) {
-    ggplot(rawData(summaryData), aes(x = start_time %/% 60, y = num_events / duration)) + 
+    ggplot(eventData(summaryData), aes(x = start_time %/% 60, y = num_events / duration)) + 
         geom_point(alpha = 0.3) + 
         ylim(0,80) +
         xlab("minute")
@@ -179,7 +179,7 @@ plotBaseProductionRate <- function(summaryData) {
 #' }
 #' @export
 plotCurrentByTime <- function(summaryData) {
-    ggplot(rawData(summaryData), aes(x = start_time / 3600, y = median_signal)) + 
+    ggplot(eventData(summaryData), aes(x = start_time / 3600, y = median_signal)) + 
         geom_point() + 
         xlab("hour") +
         ylab("median current (pA)")
@@ -256,15 +256,15 @@ plot2DYield <- function(summaryData, groupedMinutes = 1) {
 #' if( require(minionSummaryData) ) {
 #'    require(dplyr)
 #'    data(s.typhi.rep3, package = 'minionSummaryData')
-#'    ## we will plot the median raw signal for each read on z-axis
-#'    z_scale = select(rawData(s.typhi.rep3), id, median_signal)
+#'    ## we will plot the median event signal for each read on z-axis
+#'    z_scale = select(eventData(s.typhi.rep3), id, median_signal)
 #'    channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 #' }
 #' @export
 #' @importFrom dplyr left_join select
 channelActivityPlot <- function(summaryData, zScale = NULL, zAverage = TRUE) {
     
-    tmp <- left_join(readInfo(summaryData), rawData(summaryData), by = 'id') %>%
+    tmp <- left_join(readInfo(summaryData), eventData(summaryData), by = 'id') %>%
         select(id, channel, start_time, duration)
     
     ## if we've provided a zvalue, add it to our table and set the column name
