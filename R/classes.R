@@ -12,7 +12,7 @@
 #'   to a single channel. Should be in the range 1-4, but if this isn't 
 #'   available it will be 0.
 #' }
-#' @slot rawData Object of class tibble.  Holds summary of events data 
+#' @slot eventData Object of class tibble.  Holds summary of events data 
 #' prior to base calling. Contains five columns: 
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the 
@@ -25,7 +25,7 @@
 #'   \item median_signal - median of the recorded signals for this set of events.
 #' }
 #' @slot baseCalled Object of class tibble.  For the most part contains 
-#' similar data to the @@rawData slot, the base called data is derived from it.
+#' similar data to the @@eventData slot, the base called data is derived from it.
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the 
 #'   separate slots of this object.
@@ -49,6 +49,7 @@
 setClass("Fast5Summary",
          slots = list(readInfo = "tbl_df",
                       rawData = "tbl_df",
+                      eventData = "tbl_df",
                       baseCalled = "tbl_df",
                       fastq = "ShortReadQ"))
 
@@ -56,7 +57,7 @@ setClass("Fast5Summary",
 
 setMethod(show, "Fast5Summary", function(object) {
     cat("Object of class: Fast5Summary\nContains information from:\n")
-    cat(" ", nrow(object@readInfo), "fast5 files\n")
+    cat(" ", nrow(readInfo(object)), "fast5 files\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "template")), "template strands\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "complement")), "complement strands\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "template", 

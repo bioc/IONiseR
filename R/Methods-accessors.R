@@ -1,8 +1,8 @@
 
 
-#' Extract rawData slot
+#' Extract eventData slot
 #' 
-#' This generic function accesses the rawData slot stored in an object derived 
+#' This generic function accesses the eventData slot stored in an object derived 
 #' from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
@@ -10,19 +10,19 @@
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
-#'    rawData( s.typhi.rep2 )
+#'    eventData( s.typhi.rep2 )
 #' }
-setGeneric("rawData", function(x) {
-    standardGeneric("rawData")
+setGeneric("eventData", function(x) {
+    standardGeneric("eventData")
 })
 
-#' @describeIn Fast5Summary Returns rawData data.frame
+#' @describeIn Fast5Summary Returns eventData data.frame
 #' 
 #' @export
-setMethod("rawData", 
+setMethod("eventData", 
           c(x = "Fast5Summary"),
           function(x) {
-              x@rawData
+              x@eventData
           }
 )
 

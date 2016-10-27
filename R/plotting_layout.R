@@ -15,7 +15,7 @@
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
 #'    ## calculate and plot the mean number of events recorded by each channel
-#'    avgEvents <- left_join(readInfo(s.typhi.rep2), rawData(s.typhi.rep2), by = 'id') %>% 
+#'    avgEvents <- left_join(readInfo(s.typhi.rep2), eventData(s.typhi.rep2), by = 'id') %>% 
 #'    group_by(channel) %>% 
 #'    summarise(mean_nevents = mean(num_events))
 #'    channelHeatmap(avgEvents, zValue = 'mean_nevents')
@@ -67,7 +67,8 @@ muxHeatmap <- function(data, zValue) {
     tmp <- .muxToXY(.channelToXY(shiftRows = FALSE, insertGap = FALSE), shiftRows = TRUE)
     plottingMap <- as_tibble(right_join(tmp, data, by = c("mux" = "mux", "channel" = "channel")), zValue = data[[zValue]])
     
-    tmp <- left_join(tmp, group_by(plottingMap, channel) %>% summarise(zValue = sum(zValue)), by = "channel")
+    tmp <- left_join(tmp, group_by(plottingMap, channel) %>% 
+                         summarise(zValue = sum(zValue)), by = "channel")
 
     channel_data <- group_by(tmp, channel) %>% 
         summarise(row = mean(matrixRow), col = mean(matrixCol), meanZValue = mean(zValue))
@@ -116,8 +117,8 @@ layoutPlot <- function(summaryData, attribute = NULL) {
             group_by(channel) %>%
             summarise(kb = sum(seq_length) / 1000)  
     } else if (attribute == "signal") {
-        res <- mutate(rawData(summaryData), 
-                      channel = summaryData@readInfo[match(summaryData@rawData[,id], summaryData@readInfo[,id]), channel]) %>% 
+        res <- mutate(eventData(summaryData), 
+                      channel = summaryData@readInfo[match(eventData(summaryData)[,id], summaryData@readInfo[,id]), channel]) %>% 
             group_by(channel) %>% 
             summarise(signal = mean(median_signal))
     } else {

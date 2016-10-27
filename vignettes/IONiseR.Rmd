@@ -72,7 +72,7 @@ The `Fast5Summary` class has four slots, each of which is designed to store data
   -------------------------
   **readInfo** - All fast5 files contain this level of information 
   File name, channel, mux, pass/fail status
-  **rawData** - If events were recorded this level is populated 
+  **eventData** - If events were recorded this level is populated 
   Median signal, start time, duration, no. of events 
   **baseCalled** - Created if base calling succeeded. Separate entries for each strand 
   Start time, duration, no. of events, strand, 2D status 
@@ -82,7 +82,7 @@ The `Fast5Summary` class has four slots, each of which is designed to store data
 
 ### Extracting data
 
-Data in the four slots can be obtained using the appropriate accessor methods: `readInfo()`, `rawData()`, `baseCalled()` and `fastq()`.  The example below extracts the base called from our example object.
+Data in the four slots can be obtained using the appropriate accessor methods: `readInfo()`, `eventData()`, `baseCalled()` and `fastq()`.  The example below extracts the base called from our example object.
 
 ```{r extractData1, warning=FALSE}
 baseCalled(s.typhi.rep1)
@@ -177,8 +177,8 @@ If provided with a `zScale` argument each line will be colored according to the 
 
 ```{r channelActivity, fig.height=4.8, fig.width=10, dev='png', message=FALSE, warning=FALSE}
 data(s.typhi.rep3, package = 'minionSummaryData')
-## we will plot the median raw signal for each read on z-axis
-z_scale = select(rawData(s.typhi.rep3), id, median_signal)
+## we will plot the median event signal for each read on z-axis
+z_scale = select(eventData(s.typhi.rep3), id, median_signal)
 channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 ```
 
@@ -195,7 +195,7 @@ plotKmerFrequencyCorrelation( s.typhi.rep3, only2D = FALSE )
 The data included in `minionSummaryData` are very early in the life span of the MinION device, with a relatively smaller number of reads produced by only a few channels.  The following plots are created using a more recent, but currently unpublished, set of data.  Distinct waves in the average signal can be seen, although this doesn't seem to greatly impact the pentamer content of the resulting reads.
 
 ```{r combinedplots, eval=FALSE}
-p1 <- channelActivityPlot(dat, select(rawData(dat), id, median_signal))
+p1 <- channelActivityPlot(dat, select(eventData(dat), id, median_signal))
 p2 <- plotKmerFrequencyCorrelation(dat)
 grid.arrange(p1, p2, ncol = 2)
 ```

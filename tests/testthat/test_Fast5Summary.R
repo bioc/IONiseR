@@ -21,8 +21,8 @@ test_that("Can fast5 file be read?", {
 
 test_that("acessors work", {
     expect_is(readInfo(f1), 'data.frame')
-    expect_is(rawData(f1), 'data.frame')
-    expect_true(all(dim(rawData(f1)) == c(2,5)))
+    expect_is(eventData(f1), 'data.frame')
+    expect_true(all(dim(eventData(f1)) == c(2,5)))
     expect_is(baseCalled(f1), 'data.frame')
     expect_is(fastq(f1), 'ShortReadQ')
 })
