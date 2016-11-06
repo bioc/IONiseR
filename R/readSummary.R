@@ -101,7 +101,7 @@ readFast5Summary <- function(files) {
     }
     
     message("Done")
-    obj <- new("Fast5Summary", readInfo = readInfo, eventData = eventData, baseCalled = baseCalled, fastq = fastq)
+    obj <- new("Fast5Summary", readInfo = readInfo, rawData = tibble(), eventData = eventData, baseCalled = baseCalled, fastq = fastq)
     
     return(obj)
 }

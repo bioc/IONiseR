@@ -22,7 +22,7 @@ plotReadCategoryCounts <- function(summaryData) {
         pf <- FALSE
     }
     if(pf) {
-        tab <- c(tab, nrow(readInfo(summaryData)[pass == TRUE,]))
+        tab <- c(tab, nrow(filter(readInfo(summaryData), pass == TRUE)))
         res <- data_frame(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass'),
                               levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass')),   
@@ -158,7 +158,7 @@ plotBaseProductionRate <- function(summaryData) {
     ## ignore the composite 2D reads here
     fastqIDX <- .matchRecords(summaryData)[,c(fastqTemplate, fastqComplement)]
     fastqIDX <- fastqIDX[-which(is.na(fastqIDX))]
-    res <- mutate(baseCalled(summaryData), bases_called = width(summaryData@fastq[ fastqIDX ]))
+    res <- mutate(baseCalled(summaryData), bases_called = width(fastq(summaryData)[ fastqIDX ]))
     ggplot(res, aes(x = start_time %/% 60, y = bases_called / duration)) + 
         geom_point(alpha = 0.3) + 
         ylim(0,80) +
