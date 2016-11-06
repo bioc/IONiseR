@@ -18,21 +18,19 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     ## we do some manipulation here to get a single index list.
     baseCalledIDX <- select(recordTable, baseCalledTemplate:baseCalledComplement) %>% 
         gather(key = component, value = idx) %>% 
-        filter(!is.na(idx)) %>%
-        select(idx)
-    baseCalledIDX <- as.vector(baseCalledIDX[,1])
+        filter(!is.na(idx))
+    baseCalledIDX <- baseCalledIDX[['idx']]
     
     fastqIDX <- select(recordTable, fastqTemplate:fastq2D) %>% 
         gather(key = component, value = idx) %>% 
-        filter(!is.na(idx)) %>%
-        select(idx)
-    fastqIDX <- as.vector(fastqIDX[,1])
+        filter(!is.na(idx))
+    fastqIDX <- fastqIDX[['idx']]
     
     initialize(x,
-               readInfo = readInfo(x)[recordTable[,readInfo],],
-               eventData = eventData(x)[recordTable[,eventData],],
-               baseCalled = baseCalled(x)[baseCalledIDX,],
-               fastq = compact(fastq(x)[fastqIDX]) )
+               readInfo = slice(readInfo(x), recordTable[['readInfo']]),
+               eventData = slice(eventData(x), recordTable[['eventData']]),
+               baseCalled = slice(baseCalled(x), baseCalledIDX),
+               fastq = XVector::compact(fastq(x)[fastqIDX]) )
 })
 
 
@@ -48,11 +46,13 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
 
 .matchRecords <- function(summaryData) {
     
-    ids <- summaryData@readInfo[,id]
-    ri_row <- match(ids, summaryData@readInfo[,id])
-    ed_row <- match(ids, eventData(summaryData)[,id])
-    bct_row <- match(ids, summaryData@baseCalled[strand == "template",id])
-    bcc_row <- match(ids, summaryData@baseCalled[strand == "complement",id]) + nrow(summaryData@baseCalled[strand == "template"])
+    ids <- readInfo(summaryData)[['id']]
+    ri_row <- match(ids, readInfo(summaryData)[['id']])
+    ed_row <- match(ids, eventData(summaryData)[['id']])
+    bct_row <- match(ids, filter(baseCalled(summaryData), strand == "template")[['id']])
+    bcc_row <- match(ids, filter(baseCalled(summaryData), strand == "complement")[['id']]) + 
+        nrow(filter(baseCalled(summaryData), strand == "template"))
+    
     fastq_id <- .idFromFASTQ( fastq(summaryData) )
     fastq_id <- fastq_id[-(1:nrow(summaryData@baseCalled))]
     fq_row <- match(ids, fastq_id) + nrow(summaryData@baseCalled)

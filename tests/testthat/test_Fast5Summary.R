@@ -12,6 +12,10 @@ test_that("dim is not defined", {
   expect_equal(dim(s.typhi.rep2), NULL)
 })
 
+test_that("subsetting works", {
+    expect_equal(length(s.typhi.rep2[1:10]), 10)
+})
+
 fast5files <- system.file('extdata', c('example.fast5', 'example_v2.fast5'), package = "IONiseR")
 f1 <- readFast5Summary(fast5files)
 
