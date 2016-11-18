@@ -7,7 +7,7 @@
 #' @docType methods
 #' @export
 #' 
-#' @importFrom dplyr select
+#' @importFrom dplyr select slice
 #' @importFrom tidyr gather
 #' @importFrom XVector compact
 #' @importFrom methods initialize
