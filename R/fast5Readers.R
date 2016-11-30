@@ -290,15 +290,15 @@
 #' log file entry recording how far through the pipelin the file 
 #' proceeded.  This function will extract this information as a 
 #' single string.  It can be printed in a more readable format 
-#' using the \link{\code{cat()}} function.
+#' using the \code{\link{cat}} function.
 #' 
 #' @param file Character vector of fast5 file to be read.
 #' @return Character vector containing the log information.  
 #' \code{NULL} if no log is found.
 #' @examples 
-#' fast5file <- system.file('extdata', c('example.fast5', package = "IONiseR")
+#' fast5file <- system.file('extdata', 'example.fast5', package = "IONiseR")
 #' log <- readFast5Log(fast5file)
-#' cat(tmp)
+#' cat(log)
 #' @export
 readFast5Log <- function(file) {
 

@@ -78,6 +78,9 @@ An S4 class for summarised data from a MinION sequencing run
   available it will be 0.
 }}
 
+\item{\code{rawData}}{Object of class tibble.  Intended to hold raw signal data
+although reading this is currently not implemented in \code{IONiseR}.}
+
 \item{\code{eventData}}{Object of class tibble.  Holds summary of events data 
 prior to base calling. Contains five columns: 
 \itemize{

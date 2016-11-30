@@ -18,11 +18,11 @@ Basecalling procedures performed on fast5 files generally leave a
 log file entry recording how far through the pipelin the file 
 proceeded.  This function will extract this information as a 
 single string.  It can be printed in a more readable format 
-using the \link{\code{cat()}} function.
+using the \code{\link{cat}} function.
 }
 \examples{
-fast5file <- system.file('extdata', c('example.fast5', package = "IONiseR")
+fast5file <- system.file('extdata', 'example.fast5', package = "IONiseR")
 log <- readFast5Log(fast5file)
-cat(tmp)
+cat(log)
 }
 
