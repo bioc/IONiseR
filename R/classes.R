@@ -12,6 +12,8 @@
 #'   to a single channel. Should be in the range 1-4, but if this isn't 
 #'   available it will be 0.
 #' }
+#' @slot rawData Object of class tibble.  Intended to hold raw signal data
+#' although reading this is currently not implemented in \code{IONiseR}.
 #' @slot eventData Object of class tibble.  Holds summary of events data 
 #' prior to base calling. Contains five columns: 
 #' \itemize{

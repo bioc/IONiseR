@@ -94,6 +94,7 @@ muxHeatmap <- function(data, zValue) {
 #' Create layout plot of flowcell
 #' 
 #' Creates a plot representing the layout of a MinION flow cell.  Each circle represents an idividual channel with the intensity relecting the total kilobases of sequence produced.  This only considers reads marked as template or complement, 2D reads are ignored as they are generated from the former two.
+#' 
 #' @param summaryData Object of class \linkS4class{Fast5Summary}.
 #' @param attribute Character string indicating what to plot. Currently accepted values are: "nreads", "kb", "signal".
 #' @return Returns an object of \code{gg} representing the plot.
@@ -112,8 +113,9 @@ layoutPlot <- function(summaryData, attribute = NULL) {
         res <- group_by(readInfo(summaryData), channel) %>% summarise(nreads = n())
     } else if (attribute == "kb") {
         res <- mutate(baseCalled(summaryData), 
-                      seq_length = width(summaryData@fastq[1:nrow(summaryData@baseCalled)]), 
-                      channel = readInfo(summaryData)[ match(baseCalled(summaryData)[,id], readInfo(summaryData)[,id]), channel]) %>%
+                      seq_length = width(fastq(summaryData)[1:nrow(baseCalled(summaryData))]), 
+                      channel = readInfo(summaryData)[['channel']][ match(baseCalled(summaryData)[['id']], 
+                                                             readInfo(summaryData)[['id']]) ]) %>%
             group_by(channel) %>%
             summarise(kb = sum(seq_length) / 1000)  
     } else if (attribute == "signal") {
