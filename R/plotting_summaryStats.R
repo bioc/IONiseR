@@ -156,7 +156,8 @@ plotEventRate <- function(summaryData) {
 plotBaseProductionRate <- function(summaryData) {
     ## select only the fastq records for the template and complement reads
     ## ignore the composite 2D reads here
-    fastqIDX <- .matchRecords(summaryData)[,c(fastqTemplate, fastqComplement)]
+    recordTable <- .matchRecords(summaryData)
+    fastqIDX <- c(recordTable[['fastqTemplate']], recordTable[['fastqComplement']])
     fastqIDX <- fastqIDX[-which(is.na(fastqIDX))]
     res <- mutate(baseCalled(summaryData), bases_called = width(fastq(summaryData)[ fastqIDX ]))
     ggplot(res, aes(x = start_time %/% 60, y = bases_called / duration)) + 
@@ -269,7 +270,7 @@ channelActivityPlot <- function(summaryData, zScale = NULL, zAverage = TRUE) {
     
     ## if we've provided a zvalue, add it to our table and set the column name
     if(!is.null(zScale)) {
-        setnames(zScale, names(zScale)[ncol(zScale)], "zvalue")
+        names(zScale)[ncol(zScale)] <- "zvalue"
         tmp <- left_join(tmp, zScale, by = "id")
     } else {
         tmp <- mutate(tmp, zvalue = 1)
