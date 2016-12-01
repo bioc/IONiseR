@@ -178,7 +178,7 @@ If provided with a `zScale` argument each line will be colored according to the 
 ```{r channelActivity, fig.height=4.8, fig.width=10, dev='png', message=FALSE, warning=FALSE}
 data(s.typhi.rep3, package = 'minionSummaryData')
 ## we will plot the median raw signal for each read on z-axis
-z_scale = select(rawData(s.typhi.rep3), id, median_signal)
+z_scale = select(eventData(s.typhi.rep3), id, median_signal)
 channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 ```
 

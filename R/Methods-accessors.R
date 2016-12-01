@@ -4,7 +4,7 @@
 #' derived from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
-#' @return A data.table with 5 columns
+#' @return A data.frame with 5 columns
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
@@ -14,8 +14,9 @@ setGeneric("readInfo", function(x) {
     standardGeneric("readInfo")
 })
 
-#' @describeIn Fast5Summary Returns readInfo data.table
+#' @describeIn Fast5Summary Returns readInfo data.frame
 #' 
+#' @include classes.R
 #' @export
 setMethod("readInfo", 
           c(x = "Fast5Summary"),
@@ -24,29 +25,31 @@ setMethod("readInfo",
           }
 )
 
-#' Extract rawData slot
+
+#' Extract eventData slot
 #' 
-#' This generic function accesses the rawData slot stored in an object derived 
+#' This generic function accesses the eventData slot stored in an object derived 
 #' from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
-#' @return A data.table with 5 columns
+#' @return A data.frame with 5 columns
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
-#'    rawData( s.typhi.rep2 )
+#'    eventData( s.typhi.rep2 )
 #' }
-setGeneric("rawData", function(x) {
-    standardGeneric("rawData")
+setGeneric("eventData", function(x) {
+    standardGeneric("eventData")
 })
 
-#' @describeIn Fast5Summary Returns rawData data.table
+#' @describeIn Fast5Summary Returns eventData data.frame
 #' 
+#' @include classes.R
 #' @export
-setMethod("rawData", 
+setMethod("eventData", 
           c(x = "Fast5Summary"),
           function(x) {
-              x@rawData
+              x@eventData
           }
 )
 
@@ -56,7 +59,7 @@ setMethod("rawData",
 #' derived from the Fast5Summary class.
 #' 
 #' @param x Object of class \code{\linkS4class{Fast5Summary}}
-#' @return A data.table with 6 columns
+#' @return A data.frame with 6 columns
 #' @examples
 #' if( require(minionSummaryData) ) {
 #'    data(s.typhi.rep2, package = 'minionSummaryData')
@@ -67,8 +70,9 @@ setGeneric("baseCalled", function(x) {
 })
 
 
-#' @describeIn Fast5Summary Returns baseCalled data.table
+#' @describeIn Fast5Summary Returns baseCalled data.frame
 #' 
+#' @include classes.R
 #' @export
 setMethod("baseCalled", 
           c(x = "Fast5Summary"),
@@ -95,6 +99,7 @@ setGeneric("fastq", function(x) {
 
 #' @describeIn Fast5Summary Returns ShortReadQ object stored in fastq slot.
 #' 
+#' @include classes.R
 #' @export
 setMethod("fastq", 
           c(x = "Fast5Summary"),

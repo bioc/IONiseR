@@ -7,7 +7,7 @@
 muxHeatmap(data, zValue)
 }
 \arguments{
-\item{data}{A data.frame or data.table.  Should have at least two columns, 
+\item{data}{A data.frame.  Should have at least two columns, 
 one of which has the name 'channel'.}
 
 \item{zValue}{Character string specifying the name of the column to be used 

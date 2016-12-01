@@ -7,7 +7,7 @@
 channelHeatmap(data, zValue)
 }
 \arguments{
-\item{data}{A data.frame or data.table.  Should have at least two columns, 
+\item{data}{A data.frame.  Should have at least two columns, 
 one of which has the name 'channel'.}
 
 \item{zValue}{Character string specifying the name of the column to be used 
@@ -28,7 +28,7 @@ library(dplyr)
 if( require(minionSummaryData) ) {
    data(s.typhi.rep2, package = 'minionSummaryData')
    ## calculate and plot the mean number of events recorded by each channel
-   avgEvents <- left_join(readInfo(s.typhi.rep2), rawData(s.typhi.rep2), by = 'id') \%>\% 
+   avgEvents <- left_join(readInfo(s.typhi.rep2), eventData(s.typhi.rep2), by = 'id') \%>\% 
    group_by(channel) \%>\% 
    summarise(mean_nevents = mean(num_events))
    channelHeatmap(avgEvents, zValue = 'mean_nevents')
