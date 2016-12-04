@@ -217,7 +217,7 @@ plotReadTypeProduction <- function(summaryData, groupedMinutes = 10) {
                       labels=c("Not 2D", "2D - Fail", "2D - Pass"))
 }
 
-
+#' @importFrom dplyr inner_join
 plot2DYield <- function(summaryData, groupedMinutes = 1) {
     
     only2d <- .get2D(summaryData)
