@@ -32,8 +32,8 @@ influence a subset of channels.
 if( require(minionSummaryData) ) {
    require(dplyr)
    data(s.typhi.rep3, package = 'minionSummaryData')
-   ## we will plot the median event signal for each read on z-axis
-   z_scale = select(eventData(s.typhi.rep3), id, median_signal)
+   ## we will plot the median raw signal for each read on z-axis
+   z_scale = select(rawData(s.typhi.rep3), id, median_signal)
    channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 }
 }

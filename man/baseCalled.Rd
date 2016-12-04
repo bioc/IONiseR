@@ -10,7 +10,7 @@ baseCalled(x)
 \item{x}{Object of class \code{\linkS4class{Fast5Summary}}}
 }
 \value{
-A data.frame with 6 columns
+A data.table with 6 columns
 }
 \description{
 This generic function accesses the baseCalled slot stored in an object 

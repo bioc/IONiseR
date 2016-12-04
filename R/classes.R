@@ -1,7 +1,7 @@
 
 #' An S4 class for summarised data from a MinION sequencing run
 #'
-#' @slot readInfo Object of class tibble.  Contains five columns: 
+#' @slot readInfo Object of class data.table.  Contains five columns: 
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the separate 
 #'   slots of this object.
@@ -12,9 +12,7 @@
 #'   to a single channel. Should be in the range 1-4, but if this isn't 
 #'   available it will be 0.
 #' }
-#' @slot rawData Object of class tibble.  Intended to hold raw signal data
-#' although reading this is currently not implemented in \code{IONiseR}.
-#' @slot eventData Object of class tibble.  Holds summary of events data 
+#' @slot rawData Object of class data.table.  Holds summary of events data 
 #' prior to base calling. Contains five columns: 
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the 
@@ -26,8 +24,8 @@
 #'   this reading. 
 #'   \item median_signal - median of the recorded signals for this set of events.
 #' }
-#' @slot baseCalled Object of class tibble.  For the most part contains 
-#' similar data to the @@eventData slot, the base called data is derived from it.
+#' @slot baseCalled Object of class data.table.  For the most part contains 
+#' similar data to the @@rawData slot, the base called data is derived from it.
 #' \itemize{
 #'   \item id - an integer key that allows use to match entries in the 
 #'   separate slots of this object.
@@ -49,17 +47,16 @@
 #' @name Fast5Summary-class
 #' @exportClass Fast5Summary
 setClass("Fast5Summary",
-         slots = list(readInfo = "tbl_df",
-                      rawData = "tbl_df",
-                      eventData = "tbl_df",
-                      baseCalled = "tbl_df",
+         slots = list(readInfo = "data.table",
+                      rawData = "data.table",
+                      baseCalled = "data.table",
                       fastq = "ShortReadQ"))
 
 
 
 setMethod(show, "Fast5Summary", function(object) {
     cat("Object of class: Fast5Summary\nContains information from:\n")
-    cat(" ", nrow(readInfo(object)), "fast5 files\n")
+    cat(" ", nrow(object@readInfo), "fast5 files\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "template")), "template strands\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "complement")), "complement strands\n")
     cat("  |-", nrow(filter(baseCalled(object), strand == "template", 
@@ -84,6 +81,5 @@ setMethod(show, "Fast5Summary", function(object) {
 setMethod(length, "Fast5Summary", function(x) {
     nrow( readInfo(x) )
 })
-
 
 

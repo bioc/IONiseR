@@ -71,7 +71,7 @@
 }
 
 ## The sampling is how many times the signal is recorded per second.
-## We use this to convert the 'duration' and 'start_time' in the event data
+## We use this to convert the 'duration' and 'start_time' in the raw data
 ## into seconds.  It may also be useful meta data
 #' @importFrom stats median
 .getSamplingRate <- function(file) {
@@ -136,10 +136,10 @@
         H5Gclose(gid)
     }
     
-    return( tibble(read = as.integer(read_number), channel = as.integer(channel_number), mux = as.integer(start_mux)) ) 
+    return( data.frame(read = as.integer(read_number), channel = as.integer(channel_number), mux = as.integer(start_mux)) ) 
 }
 
-.getSummaryEvents <- function(file) {
+.getSummaryRaw <- function(file) {
     
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -178,7 +178,7 @@
     return(data.frame(start_time, duration, num_events, median_signal))  
 }
 
-.getEvents <- function(file) {
+.getRaw <- function(file) {
     
     fid <- H5Fopen(file)
     on.exit(H5Fclose(fid))
@@ -195,7 +195,7 @@
         ## Open the group
         gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/", read_number_char)) 
         did <- H5Dopen(gid, "Events")
-        events <- as_tibble(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
+        events <- data.table(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
         H5Dclose(did)
         
         H5Gclose(gid)
@@ -238,7 +238,7 @@
         H5Aclose(aid)   
         H5Dclose(did)
     }
-    basecalledStats <- tibble(num_events, duration, start_time, strand)
+    basecalledStats <- data.table(num_events, duration, start_time, strand)
     
     return(basecalledStats)  
 }
@@ -258,7 +258,7 @@
     } else {
         ## Open the group and read
         did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Events"))   
-        events <- as_tibble(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
+        events <- data.table(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = TRUE))
         H5Dclose(did)
     }
 
@@ -281,5 +281,8 @@
     
     return(samData)
 }
+
+
+
 
 

@@ -5,12 +5,12 @@
 \alias{Fast5Summary-class}
 \alias{[,Fast5Summary,ANY,ANY,ANY-method}
 \alias{baseCalled,Fast5Summary-method}
-\alias{eventData,Fast5Summary-method}
 \alias{fastq,Fast5Summary-method}
 \alias{fastq2D,Fast5Summary-method}
 \alias{fastqComplement,Fast5Summary-method}
 \alias{fastqTemplate,Fast5Summary-method}
 \alias{length,Fast5Summary-method}
+\alias{rawData,Fast5Summary-method}
 \alias{readInfo,Fast5Summary-method}
 \title{An S4 class for summarised data from a MinION sequencing run}
 \usage{
@@ -18,7 +18,7 @@
 
 \S4method{readInfo}{Fast5Summary}(x)
 
-\S4method{eventData}{Fast5Summary}(x)
+\S4method{rawData}{Fast5Summary}(x)
 
 \S4method{baseCalled}{Fast5Summary}(x)
 
@@ -47,11 +47,11 @@ An S4 class for summarised data from a MinION sequencing run
 \itemize{
 \item \code{length}: Returns the number of files read during creation of the object
 
-\item \code{readInfo}: Returns readInfo data.frame
+\item \code{readInfo}: Returns readInfo data.table
 
-\item \code{eventData}: Returns eventData data.frame
+\item \code{rawData}: Returns rawData data.table
 
-\item \code{baseCalled}: Returns baseCalled data.frame
+\item \code{baseCalled}: Returns baseCalled data.table
 
 \item \code{fastq}: Returns ShortReadQ object stored in fastq slot.
 
@@ -66,7 +66,7 @@ An S4 class for summarised data from a MinION sequencing run
 \section{Slots}{
 
 \describe{
-\item{\code{readInfo}}{Object of class tibble.  Contains five columns: 
+\item{\code{readInfo}}{Object of class data.table.  Contains five columns: 
 \itemize{
   \item id - an integer key that allows use to match entries in the separate 
   slots of this object.
@@ -78,10 +78,7 @@ An S4 class for summarised data from a MinION sequencing run
   available it will be 0.
 }}
 
-\item{\code{rawData}}{Object of class tibble.  Intended to hold raw signal data
-although reading this is currently not implemented in \code{IONiseR}.}
-
-\item{\code{eventData}}{Object of class tibble.  Holds summary of events data 
+\item{\code{rawData}}{Object of class data.table.  Holds summary of events data 
 prior to base calling. Contains five columns: 
 \itemize{
   \item id - an integer key that allows use to match entries in the 
@@ -94,8 +91,8 @@ prior to base calling. Contains five columns:
   \item median_signal - median of the recorded signals for this set of events.
 }}
 
-\item{\code{baseCalled}}{Object of class tibble.  For the most part contains 
-similar data to the @eventData slot, the base called data is derived from it.
+\item{\code{baseCalled}}{Object of class data.table.  For the most part contains 
+similar data to the @rawData slot, the base called data is derived from it.
 \itemize{
   \item id - an integer key that allows use to match entries in the 
   separate slots of this object.
