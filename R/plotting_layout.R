@@ -57,6 +57,7 @@ channelHeatmap <- function(data, zValue) {
 #' @param zValue Character string specifying the name of the column to be used 
 #' for the colour scaling.
 #' @return Returns an object of \code{gg} representing the plot.
+#' @importFrom dplyr right_join
 #' @export
 muxHeatmap <- function(data, zValue) {
     
