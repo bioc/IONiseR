@@ -57,7 +57,7 @@ channelHeatmap <- function(data, zValue) {
 #' @param zValue Character string specifying the name of the column to be used 
 #' for the colour scaling.
 #' @return Returns an object of \code{gg} representing the plot.
-#' @export
+#' @importFrom dplyr right_join
 muxHeatmap <- function(data, zValue) {
     
     if(!zValue %in% colnames(data)) {
@@ -110,7 +110,8 @@ muxHeatmap <- function(data, zValue) {
 layoutPlot <- function(summaryData, attribute = NULL) {
     
     if(attribute == "nreads") {
-        res <- group_by(readInfo(summaryData), channel) %>% summarise(nreads = n())
+        res <- group_by(readInfo(summaryData), channel) %>% 
+            summarise(nreads = n())
     } else if (attribute == "kb") {
         res <- mutate(baseCalled(summaryData), 
                       seq_length = width(fastq(summaryData)[1:nrow(baseCalled(summaryData))]), 
@@ -120,7 +121,8 @@ layoutPlot <- function(summaryData, attribute = NULL) {
             summarise(kb = sum(seq_length) / 1000)  
     } else if (attribute == "signal") {
         res <- mutate(eventData(summaryData), 
-                      channel = summaryData@readInfo[match(eventData(summaryData)[,id], summaryData@readInfo[,id]), channel]) %>% 
+                      channel = readInfo(summaryData)[match(eventData(summaryData)[,id], 
+                                                            readInfo(summaryData)[,id]), channel]) %>% 
             group_by(channel) %>% 
             summarise(signal = mean(median_signal))
     } else {
