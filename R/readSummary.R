@@ -26,6 +26,12 @@ readFast5Summary <- function(files) {
     fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
     files <- files[ which(fileStatus) ]
     
+    ## use a subset of files to try and guess the version
+    versions <- sapply(sample(files, size = min(length(files), 15)), .fast5version, USE.NAMES = FALSE)
+    if(all(versions) - mean(versions) == 0) {
+        warning("Not all files appear to be processed with the same version of MinKNOW.\nThis may cause problems later")
+    }
+    
     message("Reading Channel Data")
     readInfo <- lapply(files, .getReadChannelMux)
     readInfo <- rbindlist(readInfo)
@@ -101,7 +107,15 @@ readFast5Summary <- function(files) {
     }
     
     message("Done")
-    obj <- new("Fast5Summary", readInfo = readInfo, rawData = tibble(), eventData = eventData, baseCalled = baseCalled, fastq = fastq)
+    obj <- new("Fast5Summary", 
+               readInfo = readInfo, 
+               rawData = tibble(), 
+               eventData = eventData, 
+               baseCalled = baseCalled, 
+               fastq = fastq,
+               versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=T)[[1]],
+                               'MinKNOW' = max(versions))
+               )
     
     return(obj)
 }
