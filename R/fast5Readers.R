@@ -84,6 +84,15 @@
 }
 
 
+.getReadNumber <- function(fid) {
+    gid <- H5Gopen(fid, "/Analyses/EventDetection_000/Reads")
+    on.exit(H5Gclose(gid))
+    read_number_char <- h5ls(gid)[1,"name"]
+    read_number_char <- stringr::str_replace(string = read_number_char, pattern = "Read_", replacement = "")
+    read_number <- as.integer(read_number_char)
+    return(read_number)
+}
+
 .getReadChannelMux <- function(file) {
     
     if(is.character(file)) {
@@ -128,6 +137,49 @@
     }
     
     return( tibble(read = as.integer(read_number), 
+                   channel = as.integer(channel_number), 
+                   mux = as.integer(start_mux)) ) 
+}
+
+.getReadChannelMux2 <- function(file, readNumber = NULL, dontCheck = FALSE) {
+    
+    if(is.character(file)) {
+        fid <- H5Fopen(file)
+        on.exit(H5Fclose(fid))
+    } else {
+        fid <- file
+    }
+    
+    # here we get the starting mux and the read number from the channel
+    #exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
+    if(dontCheck || IONiseR:::.groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")) {
+        ## get the Read_No., this changes in every file
+        if(is.null(readNumber)) {
+            readNumber <- .getReadNumber(fid)
+        }
+        
+        ## Open the group and read the two attribute we want
+        gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/Read_", readNumber))   
+        aid <- H5Aopen(gid, "start_mux")
+        start_mux <- H5Aread(aid)
+        H5Aclose(aid)
+        H5Gclose(gid)
+    } else {
+        start_mux <- NA
+    }
+    
+    # we're also interested in the channel information
+    if(dontCheck || IONiseR:::.groupExistsObj(fid, group = "/UniqueGlobalKey/channel_id")) {
+        gid <- H5Gopen(fid, "/UniqueGlobalKey/channel_id/")   
+        aid <- H5Aopen(gid, "channel_number")
+        channel_number <- H5Aread(aid)
+        H5Aclose(aid)
+        H5Gclose(gid)
+    } else {
+        channel_number <- NA
+    }
+    
+    return( tibble(read = as.integer(readNumber), 
                    channel = as.integer(channel_number), 
                    mux = as.integer(start_mux)) ) 
 }
