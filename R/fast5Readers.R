@@ -184,44 +184,6 @@
                    mux = as.integer(start_mux)) ) 
 }
 
-.getSummaryEvents <- function(file) {
-    
-    if(is.character(file)) {
-        fid <- H5Fopen(file)
-        on.exit(H5Fclose(fid))
-    } else {
-        fid <- file
-    }
-    
-    exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
-    if(!exists) {
-        start_time <- duration <- num_events <- median_signal <- NA
-    } else {
-        ## get the Read_No., this changes in every file
-        gid <- H5Gopen(fid, "/Analyses/EventDetection_000/Reads")
-        read_number_char <- h5ls(gid)[1,"name"]
-        H5Gclose(gid)
-        
-        ## Open the group and read the two attributes we want
-        gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/", read_number_char)) 
-        aid <- H5Aopen(gid, "duration")
-        duration <- H5Aread(aid) 
-        H5Aclose(aid)
-        aid <- H5Aopen(gid, "start_time") 
-        start_time <- H5Aread(aid) 
-        H5Aclose(aid)   
-        
-        did <- H5Dopen(gid, "Events")
-        events <- H5Dread(did, bit64conversion = "int", compoundAsDataFrame = FALSE)$mean
-        median_signal <- median(events)
-        num_events <- length(events)
-        H5Dclose(did)
-        
-        H5Gclose(gid)
-    } 
-    
-    return(data.frame(start_time, duration, num_events, median_signal))  
-}
 
 .getEvents <- function(file) {
     
@@ -261,46 +223,6 @@
 }
 
 
-.getSummaryBaseCalled <- function(file, strand = "template") {
-    
-    if(is.character(file)) {
-        fid <- H5Fopen(file)
-        on.exit(H5Fclose(fid))
-    } else {
-        fid <- file
-    }
-    
-    analysisNum <- .findAnalysisNumber(fid)
-    
-    ## we have to cope with data being under either 1D or 2D file structure
-    for(d in c("1D", "2D")) {
-        exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_", analysisNum, "/Summary/basecall_1d_", strand))
-        if(exists) break;
-    }
-    
-    if(!exists) {
-        num_events <- duration <- start_time <- NA
-    } else {
-        ## Open the group and read the attribute we want
-        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_", analysisNum, "/Summary/basecall_1d_", strand))
-        aid <- H5Aopen(gid, "num_events")
-        num_events <- H5Aread(aid)
-        H5Aclose(aid)   
-        H5Gclose(gid)
-        
-        did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_", analysisNum, "/BaseCalled_", strand, "/Events"))   
-        aid <- H5Aopen(did, "duration")
-        duration <- H5Aread(aid)
-        H5Aclose(aid)
-        aid <- H5Aopen(did, "start_time")
-        start_time <- H5Aread(aid)
-        H5Aclose(aid)   
-        H5Dclose(did)
-    }
-    basecalledStats <- tibble(num_events, duration, start_time, strand)
-    
-    return(basecalledStats)  
-}
 
 .getBaseCalled <- function(file, strand = "template") {
     
