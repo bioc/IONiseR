@@ -70,7 +70,8 @@
     return(tibble(start_time, num_events))  
 }
 
-.getBaseCalledSummary <- function(file, strand = "template") {
+.getBaseCalledSummary <- function(file, strand = "template", d = "1D", analysisNum = "000",
+                                  dontCheck = FALSE) {
     
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -79,34 +80,23 @@
         fid <- file
     }
     
-    analysisNum <- .findAnalysisNumber(fid)
-    
-    ## we have to cope with data being under either 1D or 2D file structure
-    for(d in c("1D", "2D")) {
-        exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_", analysisNum, "/Summary/basecall_1d_", strand))
-        if(exists) break;
-    }
-    
-    if(!exists) {
-        num_events <- duration <- start_time <- NA
-    } else {
+    if(dontCheck || .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_", analysisNum, "/Summary/basecall_1d_", strand))) {
         ## Open the group and read the attribute we want
         gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_", analysisNum, "/Summary/basecall_1d_", strand))
+        
         aid <- H5Aopen(gid, "num_events")
         num_events <- H5Aread(aid)
         H5Aclose(aid)   
-        H5Gclose(gid)
+        aid <- H5Aopen(gid, "num_skips")
+        num_skips <- H5Aread(aid)
+        H5Aclose(aid)  
+        aid <- H5Aopen(gid, "num_stays")
+        num_stays <- H5Aread(aid)
+        H5Aclose(aid)  
         
-        did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_", analysisNum, "/BaseCalled_", strand, "/Events"))   
-        aid <- H5Aopen(did, "duration")
-        duration <- H5Aread(aid)
-        H5Aclose(aid)
-        aid <- H5Aopen(did, "start_time")
-        start_time <- H5Aread(aid)
-        H5Aclose(aid)   
-        H5Dclose(did)
+        H5Gclose(gid)
     }
-    basecalledStats <- tibble(num_events, duration, start_time, strand)
+    basecalledStats <- tibble(num_events, num_skips, num_stays, strand)
     
     return(basecalledStats)  
 }

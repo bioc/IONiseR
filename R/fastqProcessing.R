@@ -16,7 +16,7 @@
     new("ShortReadQ", id = id, sread = sread, quality = qual)
 }
 
-## produce a ShorReadQ object from a vector of fast5 strings
+## produce a ShortReadQ object from a vector of fast5 strings
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
 #' @importFrom BiocGenerics width
@@ -48,7 +48,8 @@
 }
 
 
-.getFastqString <- function(file, strand = "template") {
+.getFastqString <- function(file, strand = "template", d = "1D",
+                            dontCheck = TRUE) {
   ## returns the unprocess fastq string stored in fast5 files
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -56,18 +57,11 @@
     } else {
         fid <- file
     }
-  
-    ## is there any data, and does it fall under 2D or 1D?
-    exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_", strand))
-    d <- "2D"
-    if(!exists) {  ## recently template/complement have moved to a 1D folder, so we look there too
-        exists <- .groupExistsObj(fid, group = paste0("/Analyses/Basecall_1D_000/BaseCalled_", strand))
-        d <- "1D"
-    }
-    
-    if(exists) {
+
+    if( dontCheck || .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand)) ) {
         gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand))
         did <- H5Dopen(gid, "Fastq")
+       
         fastq <- H5Dread(did)
         
         H5Dclose(did)
@@ -77,4 +71,41 @@
     }
     
     return(fastq)
+}
+
+.processStrandSpecifier <- function(strand) {
+    
+    strand <- stringr::str_split(strand, pattern = "\\|", simplify = TRUE)[1,]
+    if(any(!strand %in% c("template", "complement", "2D", "all", "both"))) {
+        stop("Unexpected option provided to 'strand'")
+    }
+    
+    if("all" %in% strand) {
+        strand <- c("template", "complement", "2D")
+    } else if ("both" %in% strand) {
+        strand <- c("template", "complement")
+    }
+    
+    return(strand)
+}
+
+#' @export
+extractFastq <- function(files, strand = "all", outputDir = NULL, yield = NULL) {
+    
+    ## understand the file structure
+    status <- IONiseR:::.fast5status(files = sample(files, size = min(length(files), 15)))
+    
+    strand <- .processStrandSpecifier(strand)
+    ## if only 1D pipeline has been run, we can't get complement/2d data
+    if(!status$basecall_2d && any(c("complement", "2D") %in% strand)) {
+        warning("This data has only been processed using the 1D pipeline.\n",
+                "Only FASTQ files for the template strand will be generated")
+        strand <- "template"
+    }
+    
+    for(s in strand) {
+        fastq_vec <- mapply(IONiseR:::.getFastqString, files, strand = s)
+        fastq_fq <- IONiseR:::.processFastqVec(fastq_vec)$fastq
+        ShortRead::writeFastq(fastq_fq, file = "/tmp/test.fq.gz")
+    }
 }

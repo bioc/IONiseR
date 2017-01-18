@@ -164,30 +164,31 @@ readFast5Summary_update <- function(files) {
                       start_time = start_time / samplingRate,
                       duration = duration / samplingRate)
 
-    # message("Reading Template Data")
-    # template <- lapply(files, .getSummaryBaseCalled, strand = "template")
-    # template <- as_tibble(cbind(readInfo['id'], rbindlist(template)))
-    # template <- filter(template, !(is.na(num_events)))
-    # 
+    message("Reading Template Data")
+    template <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = TRUE, 
+                                        SIMPLIFY = FALSE, USE.NAMES = FALSE))
+    template <- mutate(template, id = readInfo[['id']])
+    template <- filter(template, !(is.na(num_events)))
+     
     # message("Reading Complement Data")
     # complement <- lapply(files, .getSummaryBaseCalled, strand = "complement")
     # complement <- as_tibble(cbind(readInfo['id'], rbindlist(complement)))
     # complement <- filter(complement, !(is.na(num_events)))
     # 
-    # message("Reading Template FASTQ")
-    # ## get the fastq for those that have it
-    # fq_t <- sapply(files[ template[['id']] ], .getFastqString, strand = "template")
-    # fq_t <- .processFastqVec(fq_t, readIDs = template[['id']], appendID = "_template")  
-    # fastq_template <- fq_t$fastq
-    # ## if there are any invalid entries we need to remove them
-    # if(length(fq_t$invalid)) {
-    #     template <- template[-fq_t$invalid,]
-    # }
-    # 
+    message("Reading Template FASTQ")
+    ## get the fastq for those that have it
+    fq_t <- mapply(.getFastqString, files[ template[['id']] ], strand = "template", d = "1D")
+    fq_t <- .processFastqVec(fq_t, readIDs = template[['id']], appendID = "_template")  
+    fastq_template <- fq_t$fastq
+    ## if there are any invalid entries we need to remove them
+    if(length(fq_t$invalid)) {
+        template <- template[-fq_t$invalid,]
+    }
+     
     # message("Reading Complement FASTQ")
     # fq_c <- sapply(files[ complement[['id']] ], .getFastqString, strand = "complement")
     # fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
-    # fastq_complement <- fq_c$fastq
+    fastq_complement <- ShortRead::ShortReadQ()
     # ## if there are any invalid entries we need to remove them
     # if(length(fq_c$invalid)) {
     #     complement <- complement[-fq_c$invalid,]
@@ -208,8 +209,8 @@ readFast5Summary_update <- function(files) {
     # complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
     # 
     # ## combine the template, complement and 2D data
-    # baseCalled <- rbind(template, complement)
-    # fastq <- ShortRead::append(fastq_template, fastq_complement)
+    baseCalled <- rbind(template)
+    fastq <- ShortRead::append(fastq_template, fastq_complement)
     # if(length(idx2D)) {
     #     fastq <- ShortRead::append(fastq, fastq_2D)
     # }
@@ -221,8 +222,9 @@ readFast5Summary_update <- function(files) {
                eventData = eventData, 
                baseCalled = baseCalled, 
                fastq = fastq,
-               versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=T)[[1]],
-                               'MinKNOW' = max(versions))
+               versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=T)[[1]]
+                               #'MinKNOW' = max(versions))
+                                )
     )
     
     return(obj)

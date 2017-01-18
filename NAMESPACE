@@ -2,6 +2,7 @@
 
 export(channelActivityPlot)
 export(channelHeatmap)
+export(extractFastq)
 export(layoutPlot)
 export(plotActiveChannels)
 export(plotBaseProductionRate)
