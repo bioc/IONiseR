@@ -1,4 +1,4 @@
-.fast5status <- function(files) {
+.fast5status <- function(files, warn = FALSE) {
     
     ## is the read number present in the file name?
     readInName <- stringr::str_detect(string = files, pattern = "read([0-9]+)")
@@ -12,18 +12,25 @@
     ## how many times has event detection been run?
     eventDetectionNum <- sapply(files, IONiseR:::.findAnalysisNumber, grepString = "EventDetection_([0-9]+)", USE.NAMES = FALSE)
     if(length(unique(eventDetectionNum)) != 1) {
-        warning("Inconsistent event detection runs.  Defaulting to the earliest", call. = FALSE)
+        if(warn) {
+            warning("Inconsistent event detection runs.  Defaulting to the earliest", call. = FALSE)
+        }
         eventNum <- "000"
     } else {
         eventNum <- unique(eventDetectionNum)
     }
     
     ## is /Analysis/Basecall_1D_000 present?
-    basecall_1d <- sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_1D_000", USE.NAMES = FALSE)
+    basecall_1d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_1D_000", USE.NAMES = FALSE))
+    
+    ## is /Analysis/Basecall_2D_000 present?
+    basecall_2d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_2D_000", USE.NAMES = FALSE))
     
     baseCallingNum <- sapply(files, IONiseR:::.findAnalysisNumber, grepString = "Basecall_[12]D_([0-9]+)", USE.NAMES = FALSE)
     if(length(unique(eventDetectionNum)) != 1) {
-        warning("Inconsistent base calling runs.  Defaulting to the earliest", call. = FALSE)
+        if(warn) {
+            warning("Inconsistent base calling runs.  Defaulting to the earliest", call. = FALSE)
+        }
         basecallNum <- "000"
     } else {
         basecallNum <- unique(eventDetectionNum)
@@ -33,7 +40,8 @@
                 raw_reads = all(rawReads),
                 event_detection = all(eventDetection),
                 event_num = eventNum,
-                basecall_1d = all(basecall_1d),
+                basecall_1d = basecall_1d,
+                basecall_2d = basecall_2d,
                 basecall_num = basecallNum))
     
 }
