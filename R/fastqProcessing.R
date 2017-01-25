@@ -20,7 +20,13 @@
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
 #' @importFrom BiocGenerics width
+#' @importFrom stringr str_length
 .processFastqVec <- function(strings, readIDs = NULL, appendID = NULL) {
+    
+    if(any(str_length(strings) == 0))
+        strings <- strings[-which(str_length(strings) == 0)]
+    
+    strings <- str_replace(string = strings, pattern = "^@", replacement = "")
     
     fastqStrings <- strsplit(strings, "\n")
     fastqStrings <- do.call(rbind, fastqStrings)
@@ -47,7 +53,7 @@
     return(list(fastq = fastq, invalid = invalid))
 }
 
-
+#' @importFrom stringr str_replace
 .getFastqString <- function(file, strand = "template", d = "1D",
                             dontCheck = TRUE) {
   ## returns the unprocess fastq string stored in fast5 files
@@ -58,16 +64,16 @@
         fid <- file
     }
 
-    if( dontCheck || .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand)) ) {
-        gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand))
-        did <- H5Dopen(gid, "Fastq")
+    if( dontCheck || .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq")) ) {
+        #gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand))
+        did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq"))
        
         fastq <- H5Dread(did)
         
         H5Dclose(did)
-        H5Gclose(gid)
+        #H5Gclose(gid)
     } else {
-        fastq <- NULL
+        fastq <- ""
     }
     
     return(fastq)
@@ -89,8 +95,11 @@
     return(strand)
 }
 
+
 #' @export
-extractFastq <- function(files, strand = "all", outputDir = NULL, yield = NULL) {
+#' @importFrom ShortRead writeFastq
+fast5toFastq <- function(files, strand = "all", fileName = NULL, 
+                         outputDir = NULL, yield = NULL, dontCheck = TRUE) {
     
     ## understand the file structure
     status <- IONiseR:::.fast5status(files = sample(files, size = min(length(files), 15)))
@@ -99,13 +108,17 @@ extractFastq <- function(files, strand = "all", outputDir = NULL, yield = NULL) 
     ## if only 1D pipeline has been run, we can't get complement/2d data
     if(!status$basecall_2d && any(c("complement", "2D") %in% strand)) {
         warning("This data has only been processed using the 1D pipeline.\n",
-                "Only FASTQ files for the template strand will be generated")
+                "Only FASTQ files for the template strand will be generated",
+                call. = FALSE)
         strand <- "template"
     }
     
     for(s in strand) {
-        fastq_vec <- mapply(IONiseR:::.getFastqString, files, strand = s)
+        fastq_vec <- bpmapply(FUN = IONiseR:::.getFastqString, files, 
+                            strand = s, dontCheck = dontCheck,
+                            USE.NAMES = FALSE)
         fastq_fq <- IONiseR:::.processFastqVec(fastq_vec)$fastq
-        ShortRead::writeFastq(fastq_fq, file = "/tmp/test.fq.gz")
+        ShortRead::writeFastq(fastq_fq, 
+                              file = file.path(outputDir, paste0(fileName, "_", s, ".fq.gz")))
     }
 }

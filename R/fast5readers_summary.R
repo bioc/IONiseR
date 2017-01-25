@@ -1,4 +1,4 @@
-.getRawSummary <- function(file, readNumber = NULL, dontCheck = FALSE) {
+.getRawSummary <- function(file, readNumber = NA, dontCheck = FALSE) {
     
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -9,12 +9,12 @@
     
     if(dontCheck || .groupExistsObj(fid, group = "/Raw/Reads/")) {
         ## get the Read_No. if we need to
-        if(is.null(readNumber)) {
+        if(is.na(readNumber)) {
             readNumber <- .getReadNumber(fid)
         }
         
         ## Open the group and read the two attributes we want
-        gid <- H5Gopen(fid, paste0("/Raw/Reads/Read_", readNumber)) 
+        #gid <- H5Gopen(fid, paste0("/Raw/Reads/Read_", readNumber)) 
         #aid <- H5Aopen(gid, "duration")
         #duration <- H5Aread(aid) 
         #H5Aclose(aid)
@@ -22,13 +22,13 @@
         #start_time <- H5Aread(aid) 
         #H5Aclose(aid)   
         
-        did <- H5Dopen(gid, "Signal")
+        did <- H5Dopen(fid, paste0("/Raw/Reads/Read_", readNumber, "/Signal"))
         signal <- as.integer(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = FALSE))
         median_signal <- median(signal)
         duration <- length(signal)
         H5Dclose(did)
         
-        H5Gclose(gid)
+        #H5Gclose(gid)
     } else {
         median_signal <- duration <- NA
     } 
@@ -36,7 +36,7 @@
     return(tibble(median_signal, duration))  
 }
 
-.getEventsSummary <- function(file, readNumber = NULL, dontCheck = FALSE) {
+.getEventsSummary <- function(file, readNumber = NA, dontCheck = FALSE) {
     
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -47,7 +47,7 @@
 
     if(dontCheck || .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")) {
         ## get the Read_No. if we need to
-        if(is.null(readNumber)) {
+        if(is.na(readNumber)) {
             readNumber <- .getReadNumber(fid)
         }
 

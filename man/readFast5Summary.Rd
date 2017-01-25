@@ -19,7 +19,7 @@ Reads one or more fast5 files and collects summary information about them.
 Currently this function assumes all files passed to it come from the same 
 sequencing run.  It makes no effort to check for alternative file names or 
 the like.  If files from multiple runs are passed to it they will be 
-collated together and any analysis performed on them will reprsent the 
+collated together and any analysis performed on them will represent the 
 mixture of both experiments.
 }
 \examples{
