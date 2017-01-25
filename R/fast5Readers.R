@@ -141,7 +141,7 @@
                    mux = as.integer(start_mux)) ) 
 }
 
-.getReadChannelMux2 <- function(file, readNumber = NULL, dontCheck = FALSE) {
+.getReadChannelMux2 <- function(file, readNumber = NA, dontCheck = FALSE) {
     
     if(is.character(file)) {
         fid <- H5Fopen(file)
@@ -154,7 +154,7 @@
     #exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
     if(dontCheck || IONiseR:::.groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")) {
         ## get the Read_No., this changes in every file
-        if(is.null(readNumber)) {
+        if(is.na(readNumber)) {
             readNumber <- .getReadNumber(fid)
         }
         
@@ -271,6 +271,7 @@
 
         ## Open the group
         gid <- H5Gopen(fid, paste0("/Raw/Reads/", read_number_char))
+        
         did <- H5Dopen(gid, "Signal")
         signal = H5Dread(did)
         H5Dclose(did)
@@ -279,6 +280,7 @@
         aid <- H5Aopen(gid, name = "start_time")
         startTime <- H5Aread(aid)
         H5Aclose(aid)
+        
         H5Gclose(gid)
 
         raw <- tibble(signal, time = seq(startTime, length.out = length(signal)))

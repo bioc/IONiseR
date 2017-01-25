@@ -22,9 +22,16 @@
     
     ## is /Analysis/Basecall_1D_000 present?
     basecall_1d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_1D_000", USE.NAMES = FALSE))
+    d <- "1D"
     
     ## is /Analysis/Basecall_2D_000 present?
     basecall_2d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_2D_000", USE.NAMES = FALSE))
+    if(basecall_2d) {
+        d <- "2D"
+    }
+    
+    ## is /Analysis/Basecall_2D_000/BaseCalled_2D present?
+    analysis_2d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_2D_000/BaseCalled_2D", USE.NAMES = FALSE))
     
     baseCallingNum <- sapply(files, IONiseR:::.findAnalysisNumber, grepString = "Basecall_[12]D_([0-9]+)", USE.NAMES = FALSE)
     if(length(unique(eventDetectionNum)) != 1) {
@@ -42,6 +49,8 @@
                 event_num = eventNum,
                 basecall_1d = basecall_1d,
                 basecall_2d = basecall_2d,
-                basecall_num = basecallNum))
+                analysis_2d = analysis_2d,
+                basecall_num = basecallNum,
+                d = d))
     
 }
