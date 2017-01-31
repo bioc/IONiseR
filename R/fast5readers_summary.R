@@ -25,15 +25,15 @@
         did <- H5Dopen(fid, paste0("/Raw/Reads/Read_", readNumber, "/Signal"))
         signal <- as.integer(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = FALSE))
         median_signal <- median(signal)
-        duration <- length(signal)
+        #duration <- length(signal)
         H5Dclose(did)
         
         #H5Gclose(gid)
     } else {
-        median_signal <- duration <- NA
+        median_signal <- NA
     } 
     
-    return(tibble(median_signal, duration))  
+    return(tibble(median_signal))  
 }
 
 .getEventsSummary <- function(file, readNumber = NA, dontCheck = FALSE) {
@@ -56,18 +56,28 @@
         aid <- H5Aopen(gid, "start_time") 
         start_time <- H5Aread(aid) 
         H5Aclose(aid)
-        H5Gclose(gid)
-        
-        gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Summary/event_detection")) 
-        aid <- H5Aopen(gid, "num_events") 
-        num_events <- H5Aread(aid) 
+        aid <- H5Aopen(gid, "duration") 
+        duration <- H5Aread(aid) 
         H5Aclose(aid)
         H5Gclose(gid)
+        
+        if(.groupExistsObj(fid, paste0("/Analyses/EventDetection_000/Summary/event_detection"))) {
+            gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Summary/event_detection")) 
+            aid <- H5Aopen(gid, "num_events") 
+            num_events <- H5Aread(aid) 
+            H5Aclose(aid)
+            H5Gclose(gid)
+        } else {
+            did <- H5Dopen(fid, paste0("/Analyses/EventDetection_000/Reads/Read_", readNumber, "/Events"))
+            h5dataset <- H5Dget_space(did)    
+            num_events <- H5Sget_simple_extent_dims(h5dataset)$size
+            H5Dclose(did)
+        }
     } else {
-        start_time <- num_events <- NA
+        start_time <- duration <- num_events <- NA
     }
     
-    return(tibble(start_time, num_events))  
+    return(tibble(start_time, duration, num_events))  
 }
 
 .getBaseCalledSummary <- function(file, strand = "template", d = "1D", analysisNum = "000",
@@ -95,6 +105,8 @@
         H5Aclose(aid)  
         
         H5Gclose(gid)
+    } else {
+        num_event <- num_skips <- num_stays <- NA
     }
     basecalledStats <- tibble(num_events, num_skips, num_stays, strand)
     
