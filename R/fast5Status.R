@@ -54,3 +54,75 @@
                 d = d))
     
 }
+
+#' @importFrom stringr str_detect
+#' @importFrom dplyr transmute slice n select
+.strandExistence <- function(ls, strand = "BaseCalled_template") {
+    
+    loc <- filter(ls, name == strand) %>% 
+            select(group, name) %>% 
+            transmute(path = paste(group, name, sep = "/")) %>% 
+            slice(n())
+    loc <- ifelse(stringr::str_detect(loc, strand), loc[[1]], "")
+    return(loc)
+}
+
+.chooseStrand <- function(paths) {
+    matches <- str_match(string = paths, pattern = "(^.*)([12]D_)([0-9]+)(.*$)")
+    matches <- matches[which(!is.na(matches[,1])),]
+    if(!nrow(matches)) {
+        return("")
+    }
+    
+    ## if the we have 1D and 2D analysis workflows, throw an error.  
+    ## These are really different!
+    if(length(unique(matches[,3])) != 1) {
+        stop("Inconsistent analysis workflows detected.  ",
+             "Were these files analyses with different versions of MinKNOW?")
+    }
+    
+    if(length(unique(matches[,4])) == 1) {
+        ## if everything is the same we can just return the first path
+        return(paths[1])
+    } else {
+        ## if there's a mix of anaylsis numbers, pick the lowest in the group
+        warning("Inconsistent analysis runs detected.  ",
+                "Defaulting to the earliest", call. = FALSE)
+        return( paste0(matches[1,2], matches[1,3], sort(unique(matches[,4]))[1], matches[1,5]) )
+    }
+}
+
+#' @importFrom stringr str_detect
+.fast5status_2 <- function(files, warn = FALSE) {
+    
+    ## is the read number present in the file name?
+    readInName <- stringr::str_detect(string = files, pattern = "read([0-9]+)")
+    
+    lsList <- lapply(files, h5ls, recursive = 3, datasetinfo = FALSE)
+    
+    ## is /Raw/Reads present?
+    rawReads <- sapply(lsList, FUN = function(x) {
+        select(x, group) %>% 
+            str_detect(pattern = "/Raw/Reads")
+    })
+    
+    ## is /Analysis/EventDetection_000 present?
+    eventDetection <- sapply(lsList, FUN = function(x) {
+        select(x, group) %>% 
+            str_detect(pattern = "/EventDetection")
+    })
+    
+    template_loc <- sapply(lsList, .strandExistence, strand = "BaseCalled_template")
+    template_loc <- .chooseStrand(template_loc)
+    
+    complement_loc <- sapply(lsList, .strandExistence, strand = "BaseCalled_complement")
+    complement_loc <- .chooseStrand(complement_loc)
+
+    return(list(read_in_name = all(readInName),
+                raw_reads = all(rawReads),
+                event_detection = all(eventDetection),
+                template_loc = template_loc,
+                complement_loc = complement_loc)) 
+    
+}
+
