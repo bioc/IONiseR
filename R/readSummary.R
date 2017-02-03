@@ -72,7 +72,7 @@ readFast5Summary <- function(files) {
 
     message("Reading Template Data")
     d <- str_match(pattern = "_([12]D)_", string = status$template_loc)[,2]
-    template <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = TRUE, 
+    template <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                         strand = "template", d = d,
                                         SIMPLIFY = FALSE, USE.NAMES = FALSE))
     template <- mutate(template, id = readInfo[['id']])
