@@ -81,15 +81,12 @@
              "Were these files analyses with different versions of MinKNOW?")
     }
     
-    if(length(unique(matches[,4])) == 1) {
-        ## if everything is the same we can just return the first path
-        return(paths[1])
-    } else {
-        ## if there's a mix of anaylsis numbers, pick the lowest in the group
+    if(length(unique(matches[,4])) != 1) {
+        ## if there's a mix of anaylsis numbers, warn we're picking the lowest in the group
         warning("Inconsistent analysis runs detected.  ",
                 "Defaulting to the earliest", call. = FALSE)
-        return( paste0(matches[1,2], matches[1,3], sort(unique(matches[,4]))[1], matches[1,5]) )
-    }
+    } 
+    return( paste0(matches[1,2], matches[1,3], sort(unique(matches[,4]))[1], matches[1,5]) )
 }
 
 #' @importFrom stringr str_detect

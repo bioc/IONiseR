@@ -80,6 +80,14 @@
     return(tibble(start_time, duration, num_events))  
 }
 
+.readAttribute <- function(gid, attribute) {
+    aid <- H5Aopen(gid, attribute)
+    on.exit( H5Aclose(aid) )
+    val <- H5Aread(aid)
+    return(val)
+}
+
+
 .getBaseCalledSummary <- function(file, strand = "template", d = "1D", analysisNum = "000",
                                   dontCheck = FALSE) {
     
@@ -94,19 +102,16 @@
         ## Open the group and read the attribute we want
         gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_", analysisNum, "/Summary/basecall_1d_", strand))
         
-        aid <- H5Aopen(gid, "num_events")
-        num_events <- H5Aread(aid)
-        H5Aclose(aid)   
-        aid <- H5Aopen(gid, "num_skips")
-        num_skips <- H5Aread(aid)
-        H5Aclose(aid)  
-        aid <- H5Aopen(gid, "num_stays")
-        num_stays <- H5Aread(aid)
-        H5Aclose(aid)  
+        num_events <- tryCatch(.readAttribute(gid, attribute = "num_events"), 
+                               error = function(e) { NA })
+        num_skips <- tryCatch(.readAttribute(gid, attribute = "num_skips"), 
+                              error = function(e) { NA })
+        num_stays <- tryCatch(.readAttribute(gid, attribute = "num_stays"), 
+                              error = function(e) { NA })
         
         H5Gclose(gid)
     } else {
-        num_event <- num_skips <- num_stays <- NA
+        num_events <- num_skips <- num_stays <- NA
     }
     basecalledStats <- tibble(num_events, num_skips, num_stays, strand)
     
