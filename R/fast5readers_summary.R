@@ -1,3 +1,4 @@
+#' @import bit64
 .getRawSummary <- function(file, readNumber = NA, dontCheck = FALSE) {
     
     if(is.character(file)) {
@@ -23,17 +24,18 @@
         #H5Aclose(aid)   
         
         did <- H5Dopen(fid, paste0("/Raw/Reads/Read_", readNumber, "/Signal"))
-        signal <- as.integer(H5Dread(did, bit64conversion = "int", compoundAsDataFrame = FALSE))
-        median_signal <- median(signal)
-        #duration <- length(signal)
+        #signal <- H5Dread(did, bit64conversion = "int", compoundAsDataFrame = FALSE)
+        signal <- H5Dread(did, compoundAsDataFrame = FALSE)
         H5Dclose(did)
-        
+        mean_signal <- mean(signal)
+        #duration <- length(signal)
+
         #H5Gclose(gid)
     } else {
-        median_signal <- NA
+        mean_signal <- NA
     } 
     
-    return(tibble(median_signal))  
+    return(tibble(mean_signal))  
 }
 
 .getEventsSummary <- function(file, readNumber = NA, dontCheck = FALSE) {
@@ -53,19 +55,16 @@
 
         ## Open the group and read the attributes we want
         gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/Read_", readNumber)) 
-        aid <- H5Aopen(gid, "start_time") 
-        start_time <- H5Aread(aid) 
-        H5Aclose(aid)
-        aid <- H5Aopen(gid, "duration") 
-        duration <- H5Aread(aid) 
-        H5Aclose(aid)
+        start_time <- tryCatch(.readAttribute(gid, attribute = "start_time"), 
+                             error = function(e) { NA })
+        duration <- tryCatch(.readAttribute(gid, attribute = "duration"), 
+                             error = function(e) { NA })
         H5Gclose(gid)
         
         if(.groupExistsObj(fid, paste0("/Analyses/EventDetection_000/Summary/event_detection"))) {
             gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Summary/event_detection")) 
-            aid <- H5Aopen(gid, "num_events") 
-            num_events <- H5Aread(aid) 
-            H5Aclose(aid)
+            num_events <- tryCatch(.readAttribute(gid, attribute = "num_events"), 
+                                 error = function(e) { NA }) 
             H5Gclose(gid)
         } else {
             did <- H5Dopen(fid, paste0("/Analyses/EventDetection_000/Reads/Read_", readNumber, "/Events"))
