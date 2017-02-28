@@ -83,29 +83,17 @@ readFast5Summary <- function(files) {
     }
     baseCalled <- template
     
-    if(nchar(status$complement_loc)) { 
-        message("Reading Complement Data")
-        d <- str_match(pattern = "_([12]D)_", string = status$complement_loc)[,2]
-        complement <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
-                                              strand = "complement", d = d,
-                                              SIMPLIFY = FALSE, USE.NAMES = FALSE))
-        complement <- mutate(complement, id = readInfo[['id']])
-        complement <- filter(complement, !(is.na(num_events)))
-        
-        
-        message("Reading Complement FASTQ")
-        fq_c <- mapply(.getFastqString, files[ complement[['id']] ], strand = "complement", d = d)
-        fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
-        fastq_complement <- fq_c$fastq
-
-        ## if there are any invalid entries we need to remove them
-        if(length(fq_c$invalid)) {
-            complement <- complement[-fq_c$invalid,]
-        }
-
+    if(nrow(complement)) {
+      message("Reading Complement FASTQ")
+      fq_c <- sapply(files[ complement[['id']] ], .getFastqString, strand = "complement")
+      fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
+      fastq_complement <- fq_c$fastq
+      ## if there are any invalid entries we need to remove them
+      if(length(fq_c$invalid)) {
+        complement <- complement[-fq_c$invalid,]
+      }
     } else {
-        fastq_complement <- ShortRead::ShortReadQ()
-        complement <- NULL
+      fastq_complement <- ShortRead::ShortReadQ()
     }
     
     ## we haven't read anything about 2D reads yet, so we need to identify which
@@ -113,16 +101,18 @@ readFast5Summary <- function(files) {
     idx2D <- which(sapply(files, .groupExistsString, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D")))
     if(length(idx2D)) {
         message("Reading 2D FASTQ")
-        fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D", d = "2D")
+        fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D")
         fq_2D <- .processFastqVec(fq_2D, readIDs = readInfo[['id']][idx2D], appendID = "_2D")  
         fastq_2D <- fq_2D$fastq
     }
     
     ## We update the individual strands to indicate if they are part of a full 2D read
     template <- as_tibble(cbind(template, full_2D = template[['id']] %in% idx2D))
-    complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
-        
-    # ## combine the template, complement and 2D data
+    if(nrow(complement)) {
+      complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
+    }
+    
+    ## combine the template, complement and 2D data
     baseCalled <- rbind(template, complement)
     fastq <- ShortRead::append(fastq_template, fastq_complement)
     if(length(idx2D)) {
