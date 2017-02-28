@@ -1,6 +1,6 @@
 Package: IONiseR
 Title: Quality Assessment Tools for Oxford Nanopore MinION data
-Version: 1.5.9
+Version: 1.5.10
 Authors@R: person("Mike", "Smith", email = "grimbough@gmail.com", role
         = c("aut", "cre"))
 Description: IONiseR provides tools for the quality assessment of
@@ -39,7 +39,7 @@ biocViews: QualityControl, DataImport, Sequencing
 NeedsCompilation: no
 Author: Mike Smith [aut, cre]
 Maintainer: Mike Smith <grimbough@gmail.com>
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
 Collate:
     'IONiseR.R'
     'classes.R'

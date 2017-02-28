@@ -70,20 +70,24 @@ readFast5Summary <- function(files) {
         template <- template[-fq_t$invalid,]
     }
     
-    message("Reading Complement FASTQ")
-    fq_c <- sapply(files[ complement[['id']] ], .getFastqString, strand = "complement")
-    fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
-    fastq_complement <- fq_c$fastq
-    ## if there are any invalid entries we need to remove them
-    if(length(fq_c$invalid)) {
+    if(nrow(complement)) {
+      message("Reading Complement FASTQ")
+      fq_c <- sapply(files[ complement[['id']] ], .getFastqString, strand = "complement")
+      fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
+      fastq_complement <- fq_c$fastq
+      ## if there are any invalid entries we need to remove them
+      if(length(fq_c$invalid)) {
         complement <- complement[-fq_c$invalid,]
+      }
+    } else {
+      fastq_complement <- ShortRead::ShortReadQ()
     }
     
-    message("Reading 2D FASTQ")
     ## we haven't read anything about 2D reads yet, so we need to identify which
     ## files have them.  Then we'll read only those
     idx2D <- which(sapply(files, .groupExistsString, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D")))
     if(length(idx2D)) {
+        message("Reading 2D FASTQ")
         fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D")
         fq_2D <- .processFastqVec(fq_2D, readIDs = readInfo[['id']][idx2D], appendID = "_2D")  
         fastq_2D <- fq_2D$fastq
@@ -91,7 +95,9 @@ readFast5Summary <- function(files) {
 
     ## We update the individual strands to indicate if they are part of a full 2D read
     template <- as_tibble(cbind(template, full_2D = template[['id']] %in% idx2D))
-    complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
+    if(nrow(complement)) {
+      complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
+    }
     
     ## combine the template, complement and 2D data
     baseCalled <- rbind(template, complement)
