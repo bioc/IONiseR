@@ -23,4 +23,3 @@ sequencing metric.  This function is a more generalised version of
 \code{\link{layoutPlot}}, allowing the user to map any value the like on 
 the channel layout.
 }
-

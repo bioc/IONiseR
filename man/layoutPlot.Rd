@@ -24,4 +24,3 @@ if( require(minionSummaryData) ) {
    layoutPlot( s.typhi.rep2, attribute = 'kb' )
 }
 }
-

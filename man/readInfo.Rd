@@ -22,4 +22,3 @@ if( require(minionSummaryData) ) {
    readInfo( s.typhi.rep2 )
 }
 }
-

@@ -21,4 +21,3 @@ if( require(minionSummaryData) ) {
    plotReadAccumulation( s.typhi.rep2 )
 }
 }
-

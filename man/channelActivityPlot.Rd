@@ -37,4 +37,3 @@ if( require(minionSummaryData) ) {
    channelActivityPlot( s.typhi.rep3, zScale = z_scale )
 }
 }
-

@@ -1,62 +1,5 @@
-.fast5status <- function(files, warn = FALSE) {
-    
-    ## is the read number present in the file name?
-    readInName <- stringr::str_detect(string = files, pattern = "read([0-9]+)")
-    
-    ## is /Raw/Reads present?
-    rawReads <- sapply(files, IONiseR:::.groupExistsString, group = "/Raw/Reads", USE.NAMES = FALSE)
-    
-    ## is /Analysis/EventDetection_000 present?
-    eventDetection <- sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/EventDetection_000/Reads", USE.NAMES = FALSE)
-    
-    ## how many times has event detection been run?
-    eventDetectionNum <- sapply(files, IONiseR:::.findAnalysisNumber, grepString = "EventDetection_([0-9]+)", USE.NAMES = FALSE)
-    if(length(unique(eventDetectionNum)) != 1) {
-        if(warn) {
-            warning("Inconsistent event detection runs.  Defaulting to the earliest", call. = FALSE)
-        }
-        eventNum <- "000"
-    } else {
-        eventNum <- unique(eventDetectionNum)
-    }
-    
-    ## is /Analysis/Basecall_1D_000 present?
-    basecall_1d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_1D_000", USE.NAMES = FALSE))
-    d <- "1D"
-    
-    ## is /Analysis/Basecall_2D_000 present?
-    basecall_2d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_2D_000", USE.NAMES = FALSE))
-    if(basecall_2d) {
-        d <- "2D"
-    }
-    
-    ## is /Analysis/Basecall_2D_000/BaseCalled_2D present?
-    analysis_2d <- all(sapply(files, IONiseR:::.groupExistsString, group = "/Analyses/Basecall_2D_000/BaseCalled_2D", USE.NAMES = FALSE))
-    
-    baseCallingNum <- sapply(files, IONiseR:::.findAnalysisNumber, grepString = "Basecall_[12]D_([0-9]+)", USE.NAMES = FALSE)
-    if(length(unique(eventDetectionNum)) != 1) {
-        if(warn) {
-            warning("Inconsistent base calling runs.  Defaulting to the earliest", call. = FALSE)
-        }
-        basecallNum <- "000"
-    } else {
-        basecallNum <- unique(eventDetectionNum)
-    }
-    
-    return(list(read_in_name = all(readInName),
-                raw_reads = all(rawReads),
-                event_detection = all(eventDetection),
-                event_num = eventNum,
-                basecall_1d = basecall_1d,
-                basecall_2d = basecall_2d,
-                analysis_2d = analysis_2d,
-                basecall_num = basecallNum,
-                d = d))
-    
-}
-
 #' @importFrom stringr str_detect
-#' @importFrom dplyr transmute slice n select
+#' @importFrom dplyr transmute slice select n
 .strandExistence <- function(ls, strand = "BaseCalled_template") {
     
     loc <- filter(ls, name == strand) %>% 
@@ -69,7 +12,7 @@
 
 .chooseStrand <- function(paths) {
     matches <- str_match(string = paths, pattern = "(^.*)([12]D_)([0-9]+)(.*$)")
-    matches <- matches[which(!is.na(matches[,1])),]
+    matches <- matches[which(!is.na(matches[,1])),,drop = FALSE]
     if(!nrow(matches)) {
         return("")
     }
@@ -89,8 +32,22 @@
     return( paste0(matches[1,2], matches[1,3], sort(unique(matches[,4]))[1], matches[1,5]) )
 }
 
+#' Determines the 'processing status' of the files that have been supplied.
+#' 
+#' Fast5 files can be obtained at several points in the standard processing
+#' flow.  Exactly which point was reached determines the type of data that is
+#' present in the files e.g. raw signal, events detected, bases called etc.
+#' This function looks at the hdf5 structure of the files to try and determine
+#' what to expect.  Knowing about the structure can improve the performance of
+#' data extraction code, since we don't necessarily have to check for 
+#' existance every time.  This also trys to determine whether the '1D' or '2D'
+#' workflow was run, since this also influences the path to (and existance of)
+#' the template (and complement) data.#' 
+#' 
 #' @importFrom stringr str_detect
-.fast5status_2 <- function(files, warn = FALSE) {
+#' @keywords internal
+#' @noRd 
+.fast5status <- function(files, warn = FALSE) {
     
     ## is the read number present in the file name?
     readInName <- stringr::str_detect(string = files, pattern = "read([0-9]+)")

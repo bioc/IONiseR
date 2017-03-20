@@ -21,4 +21,3 @@ if( require(minionSummaryData) ) {
    plotEventRate( s.typhi.rep2 )
 }
 }
-
