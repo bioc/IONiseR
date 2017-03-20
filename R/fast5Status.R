@@ -13,6 +13,7 @@
 .chooseStrand <- function(paths) {
     matches <- str_match(string = paths, pattern = "(^.*)([12]D_)([0-9]+)(.*$)")
     matches <- matches[which(!is.na(matches[,1])),,drop = FALSE]
+
     if(!nrow(matches)) {
         return("")
     }
