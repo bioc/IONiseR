@@ -25,7 +25,7 @@ readFast5Summary <- function(files) {
     fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
     files <- files[ which(fileStatus) ]
 
-    status <- .fast5status_2(files = sample(files, size = min(length(files), 15)))
+    status <- .fast5status(files = sample(files, size = min(length(files), 15)))
     if(status$template_loc == "") {
         stop("No basecalling for template strand found.  Aborting")
     }
@@ -155,7 +155,7 @@ readFast5Summary.mc <- function(files, ncores = 2) {
   fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
   files <- files[ which(fileStatus) ]
   
-  status <- .fast5status_2(files = sample(files, size = min(length(files), 15)))
+  status <- .fast5status(files = sample(files, size = min(length(files), 15)))
   if(status$template_loc == "") {
     stop("No basecalling for template strand found.  Aborting")
   }

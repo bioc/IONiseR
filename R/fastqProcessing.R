@@ -1,4 +1,4 @@
-## produce a ShorReadQ object from the fast5 string
+## produce a ShortReadQ object from the fast5 string
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
 #' @importFrom methods new
@@ -96,13 +96,31 @@
 }
 
 
+#' Extract FASTQ files from fast5 files
+#' 
+#' This function provides direct access to the FASTQ entries held within fast5
+#' files.  If you are only interested in getting hold of the base called reads,
+#' and don't require any raw-signal or event information, use this function.
+#' Given a vector of fast5 files, the FASTQ entries will be combined and up to
+#' three gzip compressed FASTQ will be created - one for each of the template, complement and 
+#' 2D strands depending upon what is available in the input files.
+#' 
+#' @param files Character vector of fast5 files to be read.
+#' @param strand Character vector specifying the strand to extract.  Can take
+#' any combination of the following options: "template", "complement", "2D", 
+#' "all", "both".
+#' @param fileName Stem for the name of the names of the output file names.
+#' The appropriate strand will be appended to each file e.g. 
+#' fileName_complement.fq.gz or fileName_template.fq.gz
+#' @param outputDir Directory output files should be written to.
+#' 
 #' @export
 #' @importFrom ShortRead writeFastq
 fast5toFastq <- function(files, strand = "all", fileName = NULL, 
-                         outputDir = NULL, yield = NULL, dontCheck = TRUE) {
+                         outputDir = NULL) {
     
     ## understand the file structure
-    status <- IONiseR:::.fast5status(files = sample(files, size = min(length(files), 15)))
+    status <- IONiseR::.fast5status(files = sample(files, size = min(length(files), 15)))
     
     strand <- .processStrandSpecifier(strand)
     ## if only 1D pipeline has been run, we can't get complement/2d data
@@ -114,11 +132,12 @@ fast5toFastq <- function(files, strand = "all", fileName = NULL,
     }
     
     for(s in strand) {
-        fastq_vec <- bpmapply(FUN = IONiseR:::.getFastqString, files, 
-                            strand = s, dontCheck = dontCheck,
+        fastq_vec <- bpmapply(FUN = IONiseR::.getFastqString, files, 
+                            strand = s, dontCheck = FALSE,
                             USE.NAMES = FALSE)
-        fastq_fq <- IONiseR:::.processFastqVec(fastq_vec)$fastq
+        fastq_fq <- IONiseR::.processFastqVec(fastq_vec)$fastq
         ShortRead::writeFastq(fastq_fq, 
-                              file = file.path(outputDir, paste0(fileName, "_", s, ".fq.gz")))
+                              file = file.path(outputDir, 
+                                               paste0(fileName, "_", s, ".fq.gz")))
     }
 }
