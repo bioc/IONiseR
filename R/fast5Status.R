@@ -1,5 +1,6 @@
 #' @importFrom stringr str_detect
 #' @importFrom dplyr transmute slice select n
+#' @noRd 
 .strandExistence <- function(ls, strand = "BaseCalled_template") {
     
     loc <- filter(ls, name == strand) %>% 

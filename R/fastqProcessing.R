@@ -83,7 +83,9 @@
     
     strand <- stringr::str_split(strand, pattern = "\\|", simplify = TRUE)[1,]
     if(any(!strand %in% c("template", "complement", "2D", "all", "both"))) {
-        stop("Unexpected option provided to 'strand'")
+        stop("Unexpected option provided to 'strand'.",
+             "Please provide some combination of the following options:",
+             "'template', 'complement', '2D', 'all', 'both'")
     }
     
     if("all" %in% strand) {
@@ -102,8 +104,9 @@
 #' files.  If you are only interested in getting hold of the base called reads,
 #' and don't require any raw-signal or event information, use this function.
 #' Given a vector of fast5 files, the FASTQ entries will be combined and up to
-#' three gzip compressed FASTQ will be created - one for each of the template, complement and 
-#' 2D strands depending upon what is available in the input files.
+#' three gzip compressed FASTQ will be created - one for each of the template, 
+#' complement and 2D strands depending upon what is available in the input 
+#' files.
 #' 
 #' @param files Character vector of fast5 files to be read.
 #' @param strand Character vector specifying the strand to extract.  Can take
@@ -113,11 +116,13 @@
 #' The appropriate strand will be appended to each file e.g. 
 #' fileName_complement.fq.gz or fileName_template.fq.gz
 #' @param outputDir Directory output files should be written to.
+#' @param ncores Specify the number of CPU cores that should be used to process 
+#' the files.
 #' 
 #' @export
 #' @importFrom ShortRead writeFastq
 fast5toFastq <- function(files, strand = "all", fileName = NULL, 
-                         outputDir = NULL) {
+                         outputDir = NULL, ncores = 1) {
     
     ## understand the file structure
     status <- IONiseR::.fast5status(files = sample(files, size = min(length(files), 15)))
@@ -132,9 +137,10 @@ fast5toFastq <- function(files, strand = "all", fileName = NULL,
     }
     
     for(s in strand) {
-        fastq_vec <- bpmapply(FUN = IONiseR::.getFastqString, files, 
+        fastq_vec <- bpmapply(FUN = .getFastqString, files, 
                             strand = s, dontCheck = FALSE,
-                            USE.NAMES = FALSE)
+                            USE.NAMES = FALSE,
+                            BPPARAM = MulticoreParam(workers = ncores))
         fastq_fq <- IONiseR::.processFastqVec(fastq_vec)$fastq
         ShortRead::writeFastq(fastq_fq, 
                               file = file.path(outputDir, 
