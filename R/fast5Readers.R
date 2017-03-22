@@ -152,7 +152,7 @@
     
     # here we get the starting mux and the read number from the channel
     #exists <- .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")
-    if(dontCheck || IONiseR:::.groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")) {
+    if(dontCheck || .groupExistsObj(fid, group = "/Analyses/EventDetection_000/Reads")) {
         ## get the Read_No., this changes in every file
         if(is.na(readNumber)) {
             readNumber <- .getReadNumber(fid)
@@ -169,7 +169,7 @@
     }
     
     # we're also interested in the channel information
-    if(dontCheck || IONiseR:::.groupExistsObj(fid, group = "/UniqueGlobalKey/channel_id")) {
+    if(dontCheck || .groupExistsObj(fid, group = "/UniqueGlobalKey/channel_id")) {
         gid <- H5Gopen(fid, "/UniqueGlobalKey/channel_id/")   
         aid <- H5Aopen(gid, "channel_number")
         channel_number <- H5Aread(aid)

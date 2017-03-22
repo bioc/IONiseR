@@ -27,7 +27,7 @@ readFast5Summary <- function(files) {
 
     status <- .fast5status(files = sample(files, size = min(length(files), 15)))
     if(status$template_loc == "") {
-        stop("No basecalling for template strand found.  Aborting")
+        stop("No basecalls for template strand found.  Aborting")
     }
     
     message("Reading Channel Data")
