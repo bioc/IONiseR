@@ -4,7 +4,8 @@
 \alias{fast5toFastq}
 \title{Extract FASTQ files from fast5 files}
 \usage{
-fast5toFastq(files, strand = "all", fileName = NULL, outputDir = NULL)
+fast5toFastq(files, strand = "all", fileName = NULL, outputDir = NULL,
+  ncores = 1)
 }
 \arguments{
 \item{files}{Character vector of fast5 files to be read.}
@@ -18,12 +19,17 @@ The appropriate strand will be appended to each file e.g.
 fileName_complement.fq.gz or fileName_template.fq.gz}
 
 \item{outputDir}{Directory output files should be written to.}
+
+\item{ncores}{Specify the number of CPU cores that should be used to process 
+the files.  Currently this seems to be more IO bound than CPU, so there
+is little benefit achieved by using a high number of cores.}
 }
 \description{
 This function provides direct access to the FASTQ entries held within fast5
 files.  If you are only interested in getting hold of the base called reads,
 and don't require any raw-signal or event information, use this function.
 Given a vector of fast5 files, the FASTQ entries will be combined and up to
-three gzip compressed FASTQ will be created - one for each of the template, complement and 
-2D strands depending upon what is available in the input files.
+three gzip compressed FASTQ will be created - one for each of the template, 
+complement and 2D strands depending upon what is available in the input 
+files.
 }

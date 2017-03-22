@@ -27,11 +27,12 @@
     }
     
     if(length(unique(matches[,4])) != 1) {
-        ## if there's a mix of anaylsis numbers, warn we're picking the lowest in the group
-        warning("Inconsistent analysis runs detected.  ",
-                "Defaulting to the earliest", call. = FALSE)
+        ## if there's a mix of anaylsis numbers, warn we're picking the lowest
+        warning("Inconsistent number of analysis runs detected between files.",
+                " Defaulting to the earliest", call. = FALSE)
     } 
-    return( paste0(matches[1,2], matches[1,3], sort(unique(matches[,4]))[1], matches[1,5]) )
+    return( paste0(matches[1,2], matches[1,3], 
+                   sort(unique(matches[,4]))[1], matches[1,5]) )
 }
 
 #' Determines the 'processing status' of the files that have been supplied.
@@ -68,6 +69,12 @@
             str_detect(pattern = "/EventDetection")
     })
     
+    ## is /Analysis/EventDetection_000 present?
+    basecalled_2d <- sapply(lsList, FUN = function(x) {
+        select(x, name) %>% 
+            str_detect(pattern = "BaseCalled_2D")
+    })
+    
     template_loc <- sapply(lsList, .strandExistence, strand = "BaseCalled_template")
     template_loc <- .chooseStrand(template_loc)
     
@@ -78,7 +85,8 @@
                 raw_reads = all(rawReads),
                 event_detection = all(eventDetection),
                 template_loc = template_loc,
-                complement_loc = complement_loc)) 
+                complement_loc = complement_loc,
+                basecalled_2d = any(basecalled_2d))) 
     
 }
 

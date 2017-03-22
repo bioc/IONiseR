@@ -28,8 +28,9 @@
     
     strings <- str_replace(string = strings, pattern = "^@", replacement = "")
     
-    fastqStrings <- strsplit(strings, "\n")
-    fastqStrings <- do.call(rbind, fastqStrings)
+    #fastqStrings <- strsplit(strings, "\n")
+    #fastqStrings <- do.call(rbind, fastqStrings)
+    fastqStrings <- stringr::str_match(strings, pattern = "(.*)\n(.*)\n(\\+)\n(.*)")[,2:5]
     
     if(is.null(readIDs)) {
         id <- BStringSet(paste0(fastqStrings[,1], appendID))
@@ -65,13 +66,9 @@
     }
 
     if( dontCheck || .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq")) ) {
-        #gid <- H5Gopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand))
         did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq"))
-       
         fastq <- H5Dread(did)
-        
         H5Dclose(did)
-        #H5Gclose(gid)
     } else {
         fastq <- ""
     }
@@ -117,31 +114,46 @@
 #' fileName_complement.fq.gz or fileName_template.fq.gz
 #' @param outputDir Directory output files should be written to.
 #' @param ncores Specify the number of CPU cores that should be used to process 
-#' the files.
+#' the files.  Currently this seems to be more IO bound than CPU, so there
+#' is little benefit achieved by using a high number of cores.
 #' 
 #' @export
 #' @importFrom ShortRead writeFastq
+#' @importFrom BiocParallel MulticoreParam bpmapply register
 fast5toFastq <- function(files, strand = "all", fileName = NULL, 
                          outputDir = NULL, ncores = 1) {
     
+    ## TODO: check files exist and can be accessed
+    
     ## understand the file structure
-    status <- IONiseR::.fast5status(files = sample(files, size = min(length(files), 15)))
+    status <- .fast5status(files = sample(files, size = min(length(files), 15)))
     
     strand <- .processStrandSpecifier(strand)
     ## if only 1D pipeline has been run, we can't get complement/2d data
-    if(!status$basecall_2d && any(c("complement", "2D") %in% strand)) {
+        if( (!nchar(status$complement_loc) && "complement" %in% strand) ) {
         warning("This data has only been processed using the 1D pipeline.\n",
-                "Only FASTQ files for the template strand will be generated",
+                "FASTQ files for the complement strand will not be generated.",
                 call. = FALSE)
-        strand <- "template"
+            strand <- strand[-which(strand == "complement")]
+        }
+    
+    ## if only 1D pipeline has been run, we can't get complement/2d data
+    if( !status$basecalled_2d && "2D" %in% strand ) {
+        warning("This data does not contain 2D base calls.\n",
+                "FASTQ files for the 2D strand will not be generated.",
+                call. = FALSE)
+        strand <- strand[-which(strand == "2D")]
     }
     
+    register(MulticoreParam(workers = ncores))
+    
     for(s in strand) {
+        d <- str_match(status$template_loc, pattern = "Basecall_([12]D)")[,2]
         fastq_vec <- bpmapply(FUN = .getFastqString, files, 
-                            strand = s, dontCheck = FALSE,
-                            USE.NAMES = FALSE,
-                            BPPARAM = MulticoreParam(workers = ncores))
-        fastq_fq <- IONiseR::.processFastqVec(fastq_vec)$fastq
+                            strand = s, d = d,
+                            dontCheck = FALSE,
+                            USE.NAMES = FALSE)
+        fastq_fq <- .processFastqVec(fastq_vec)$fastq
         ShortRead::writeFastq(fastq_fq, 
                               file = file.path(outputDir, 
                                                paste0(fileName, "_", s, ".fq.gz")))
