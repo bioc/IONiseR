@@ -31,4 +31,3 @@ if( require(minionSummaryData) ) {
    plotKmerFrequencyCorrelation( s.typhi.rep3, only2D = FALSE )
 }
 }
-

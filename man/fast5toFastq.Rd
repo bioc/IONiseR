@@ -24,6 +24,10 @@ fileName_complement.fq.gz or fileName_template.fq.gz}
 the files.  Currently this seems to be more IO bound than CPU, so there
 is little benefit achieved by using a high number of cores.}
 }
+\value{
+No value returned.  Run for the side effect of writing the FASTQ
+files to disk.
+}
 \description{
 This function provides direct access to the FASTQ entries held within fast5
 files.  If you are only interested in getting hold of the base called reads,

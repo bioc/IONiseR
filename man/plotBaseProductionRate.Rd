@@ -30,4 +30,3 @@ if( require(minionSummaryData) ) {
    plotBaseProductionRate( s.typhi.rep2 )
 }
 }
-

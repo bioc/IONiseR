@@ -25,4 +25,3 @@ fast5file <- system.file('extdata', 'example.fast5', package = "IONiseR")
 log <- readFast5Log(fast5file)
 cat(log)
 }
-

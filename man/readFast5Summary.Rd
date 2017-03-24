@@ -28,4 +28,3 @@ fast5files <- list.file('/foo/bar/', pattern = '.fast5$')
 summaryData <- readFast5Summary(fast5files)
 }
 }
-

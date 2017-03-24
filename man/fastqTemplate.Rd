@@ -22,4 +22,3 @@ if( require(minionSummaryData) ) {
    fastqTemplate( s.typhi.rep2 )
 }
 }
-

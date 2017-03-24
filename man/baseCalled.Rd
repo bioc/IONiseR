@@ -22,4 +22,3 @@ if( require(minionSummaryData) ) {
    baseCalled( s.typhi.rep2 )
 }
 }
-

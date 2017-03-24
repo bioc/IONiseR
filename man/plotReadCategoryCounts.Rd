@@ -22,4 +22,3 @@ if( require(minionSummaryData) ) {
    plotReadCategoryCounts( s.typhi.rep2 )
 }
 }
-

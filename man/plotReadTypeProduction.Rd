@@ -24,4 +24,3 @@ if( require(minionSummaryData) ) {
    plotReadTypeProduction( s.typhi.rep2 )
 }
 }
-

@@ -22,6 +22,11 @@ readFast5Summary <- function(files) {
     
     ## some files can't be opened, so we filter them here
     message("Checking file validity")
+    files <- files[file.exists(files)]
+    if(length(files) == 0) {
+        stop('None of the provided files can be accessed.  ',
+             'Have you supplied the correct path?')
+    }
     fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
     files <- files[ which(fileStatus) ]
 
@@ -83,14 +88,29 @@ readFast5Summary <- function(files) {
     }
     baseCalled <- template
     
-    if(nrow(complement)) {
-      message("Reading Complement FASTQ")
-      fq_c <- sapply(files[ complement[['id']] ], .getFastqString, strand = "complement")
-      fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
-      fastq_complement <- fq_c$fastq
-      ## if there are any invalid entries we need to remove them
-      if(length(fq_c$invalid)) {
-        complement <- complement[-fq_c$invalid,]
+    if(nchar(status$complement_loc)) { 
+        message("Reading Complement Data")
+        d <- str_match(pattern = "_([12]D)_", string = status$complement_loc)[,2]
+        complement <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
+                                              strand = "complement", d = d,
+                                              SIMPLIFY = FALSE, USE.NAMES = FALSE))
+        complement <- mutate(complement, id = readInfo[['id']])
+        complement <- filter(complement, !(is.na(num_events)))
+        
+        
+        message("Reading Complement FASTQ")
+        fq_c <- mapply(.getFastqString, files[ complement[['id']] ], strand = "complement", d = d)
+        fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
+        fastq_complement <- fq_c$fastq
+
+        ## if there are any invalid entries we need to remove them
+        if(length(fq_c$invalid)) {
+            complement <- complement[-fq_c$invalid,]
+        }
+
+    } else {
+        fastq_complement <- ShortRead::ShortReadQ()
+        complement <- NULL
       }
     } else {
       fastq_complement <- ShortRead::ShortReadQ()
@@ -101,7 +121,7 @@ readFast5Summary <- function(files) {
     idx2D <- which(sapply(files, .groupExistsString, group = paste0("/Analyses/Basecall_2D_000/BaseCalled_2D")))
     if(length(idx2D)) {
         message("Reading 2D FASTQ")
-        fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D")
+        fq_2D <- sapply(files[ idx2D ], .getFastqString, strand = "2D", d = "2D")
         fq_2D <- .processFastqVec(fq_2D, readIDs = readInfo[['id']][idx2D], appendID = "_2D")  
         fastq_2D <- fq_2D$fastq
     }
@@ -111,8 +131,8 @@ readFast5Summary <- function(files) {
     if(nrow(complement)) {
       complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
     }
-    
-    ## combine the template, complement and 2D data
+        
+    # ## combine the template, complement and 2D data
     baseCalled <- rbind(template, complement)
     fastq <- ShortRead::append(fastq_template, fastq_complement)
     if(length(idx2D)) {
@@ -256,7 +276,9 @@ readFast5Summary.mc <- function(files, ncores = 2) {
              eventData = rawEventData, 
              baseCalled = baseCalled, 
              fastq = fastq,
-             versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=T)[[1]]
+             versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),
+                                                  ".",
+                                                  fixed=TRUE)[[1]]
                              # 'MinKNOW' = max(versions))
              )
   )

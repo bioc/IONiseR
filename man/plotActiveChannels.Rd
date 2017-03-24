@@ -21,4 +21,3 @@ if( require(minionSummaryData) ) {
    plotActiveChannels( s.typhi.rep2 )
 }
 }
-
