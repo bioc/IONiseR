@@ -53,7 +53,8 @@ setClass("Fast5Summary",
                       rawData = "tbl_df",
                       eventData = "tbl_df",
                       baseCalled = "tbl_df",
-                      fastq = "ShortReadQ"))
+                      fastq = "ShortReadQ",
+                      versions = "list"))
 
 
 

@@ -1,6 +1,6 @@
 Package: IONiseR
 Title: Quality Assessment Tools for Oxford Nanopore MinION data
-Version: 1.5.10
+Version: 1.99.3
 Authors@R: person("Mike", "Smith", email = "grimbough@gmail.com", role
         = c("aut", "cre"))
 Description: IONiseR provides tools for the quality assessment of
@@ -12,13 +12,12 @@ Description: IONiseR provides tools for the quality assessment of
     spatially over the surface of a flowcell.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.4)
+    R (>= 3.3)
 Imports:
     rhdf5,
     dplyr,
     magrittr,
     tidyr,
-    data.table,
     ShortRead,
     Biostrings,
     ggplot2,
@@ -26,7 +25,10 @@ Imports:
     BiocGenerics,
     XVector,
     tibble,
-    stats
+    stats,
+    BiocParallel,
+    bit64,
+    stringr
 VignetteBuilder: knitr
 Suggests:
     BiocStyle,
@@ -40,16 +42,18 @@ NeedsCompilation: no
 Author: Mike Smith [aut, cre]
 Maintainer: Mike Smith <grimbough@gmail.com>
 RoxygenNote: 6.0.1
-Collate:
+Collate: 
     'IONiseR.R'
     'classes.R'
     'Methods-accessors.R'
     'Methods-subsetting.R'
     'fast5Readers.R'
+    'fast5Status.R'
+    'fast5readers_summary.R'
+    'fast5utilities.R'
     'fastqProcessing.R'
     'plotting_kmers.R'
     'plotting_layout.R'
     'plotting_summaryStats.R'
     'processing_bam.R'
     'readSummary.R'
-    'squiggle.R'

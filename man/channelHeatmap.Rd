@@ -34,4 +34,3 @@ if( require(minionSummaryData) ) {
    channelHeatmap(avgEvents, zValue = 'mean_nevents')
 }
 }
-

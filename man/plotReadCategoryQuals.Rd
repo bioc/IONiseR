@@ -21,4 +21,3 @@ if( require(minionSummaryData) ) {
    plotReadCategoryQuals( s.typhi.rep2 )
 }
 }
-

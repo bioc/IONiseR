@@ -22,4 +22,3 @@ if( require(minionSummaryData) ) {
    plotCurrentByTime( s.typhi.rep2 )
 }
 }
-

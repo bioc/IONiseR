@@ -14,6 +14,7 @@ bibliography: bibliography.bib
 
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
+knitr::opts_chunk$set(eval=FALSE)
 ```
 
 # Introduction
@@ -73,7 +74,7 @@ The `Fast5Summary` class has four slots, each of which is designed to store data
   **readInfo** - All fast5 files contain this level of information 
   File name, channel, mux, pass/fail status
   **eventData** - If events were recorded this level is populated 
-  Median signal, start time, duration, no. of events 
+  Mean signal, start time, duration, no. of events 
   **baseCalled** - Created if base calling succeeded. Separate entries for each strand 
   Start time, duration, no. of events, strand, 2D status 
   **fastq** - Up to three entries per file (template, complement and 2D reads) 

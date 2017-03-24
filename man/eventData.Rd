@@ -22,4 +22,3 @@ if( require(minionSummaryData) ) {
    eventData( s.typhi.rep2 )
 }
 }
-

@@ -15,7 +15,7 @@ Character vector containing the log information.
 }
 \description{
 Basecalling procedures performed on fast5 files generally leave a 
-log file entry recording how far through the pipelin the file 
+log file entry recording how far through the pipeline the file 
 proceeded.  This function will extract this information as a 
 single string.  It can be printed in a more readable format 
 using the \code{\link{cat}} function.
@@ -25,4 +25,3 @@ fast5file <- system.file('extdata', 'example.fast5', package = "IONiseR")
 log <- readFast5Log(fast5file)
 cat(log)
 }
-

@@ -13,4 +13,3 @@ of the read-types produced, it provides a number of plots for visualising
 metrics relative to experiment run time or spatially over the surface of a 
 flowcell.
 }
-

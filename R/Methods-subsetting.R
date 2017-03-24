@@ -26,11 +26,18 @@ setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
         filter(!is.na(idx))
     fastqIDX <- fastqIDX[['idx']]
     
+    if(.hasSlot(x, 'versions')) {
+        versions <- x@versions
+    } else {
+        versions <- list()
+    }
+    
     initialize(x,
                readInfo = slice(readInfo(x), recordTable[['readInfo']]),
                eventData = slice(eventData(x), recordTable[['eventData']]),
                baseCalled = slice(baseCalled(x), baseCalledIDX),
-               fastq = XVector::compact(fastq(x)[fastqIDX]) )
+               fastq = XVector::compact(fastq(x)[fastqIDX]),
+               versions = versions)
 })
 
 
