@@ -1,4 +1,4 @@
-IONiseR v1.5.x
+IONiseR v2.0.x
 ==============
 
 Changes:
@@ -8,6 +8,10 @@ Changes:
 * Added readFast5Log() to extract process log from fast5 file.
 * Re-named @rawData to @eventData (and relevant accessor methods), now fast5
     files can have truly raw data.
+* Added fast5toFastq() function to allow access to FASTQ entries without
+    reading all the other data.
+* Many changes to cope with the variety of fast5 file structure -
+    error handling should be more robust now.
 
 IONiseR v1.3.x
 ==============

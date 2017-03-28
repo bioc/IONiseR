@@ -37,3 +37,10 @@ three gzip compressed FASTQ will be created - one for each of the template,
 complement and 2D strands depending upon what is available in the input 
 files.
 }
+\examples{
+\dontrun{
+fast5files <- list.files('/foo/bar/', pattern = '.fast5$')
+summaryData <- readFast5Summary(fast5files)
+}
+
+}

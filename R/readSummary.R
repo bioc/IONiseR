@@ -11,7 +11,7 @@
 #' @param files Character vector of fast5 files to be read.
 #' @return Object of class \linkS4class{Fast5Summary}
 #' @examples \dontrun{
-#' fast5files <- list.file('/foo/bar/', pattern = '.fast5$')
+#' fast5files <- list.files('/foo/bar/', pattern = '.fast5$')
 #' summaryData <- readFast5Summary(fast5files)
 #' }
 #' @export
@@ -32,7 +32,7 @@ readFast5Summary <- function(files) {
     files <- files[ which(fileStatus) ]
     
     status <- .fast5status(files = sample(files, size = min(length(files), 15)))
-    if(status$template_loc == "") {
+    if(status$loc_template == "") {
         stop("No basecalls for template strand found.  Aborting")
     }
     
@@ -71,7 +71,7 @@ readFast5Summary <- function(files) {
                            duration = duration / samplingRate)
     
     message("Reading Template Data")
-    d <- str_match(pattern = "_([12]D)_", string = status$template_loc)[,2]
+    d <- str_match(pattern = "_([12]D)_", string = status$loc_template)[,2]
     template <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                         strand = "template", d = d,
                                         SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -89,9 +89,9 @@ readFast5Summary <- function(files) {
     }
     baseCalled <- template
     
-    if(nchar(status$complement_loc)) { 
+    if(nchar(status$loc_complement)) { 
         message("Reading Complement Data")
-        d <- str_match(pattern = "_([12]D)_", string = status$complement_loc)[,2]
+        d <- str_match(pattern = "_([12]D)_", string = status$loc_complement)[,2]
         complement <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                               strand = "complement", d = d,
                                               SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -161,7 +161,7 @@ readFast5Summary.mc <- function(files, ncores = 2) {
   files <- files[ which(fileStatus) ]
   
   status <- .fast5status(files = sample(files, size = min(length(files), 15)))
-  if(status$template_loc == "") {
+  if(status$loc_template == "") {
     stop("No basecalling for template strand found.  Aborting")
   }
   
@@ -200,7 +200,7 @@ readFast5Summary.mc <- function(files, ncores = 2) {
                          duration = duration / samplingRate)
   
   message("Reading Template Data")
-  d <- str_match(pattern = "_([12]D)_", string = status$template_loc)[,2]
+  d <- str_match(pattern = "_([12]D)_", string = status$loc_template)[,2]
   template <- do.call("rbind", bpmapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                       strand = "template", d = d,
                                       SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -218,9 +218,9 @@ readFast5Summary.mc <- function(files, ncores = 2) {
   }
   baseCalled <- template
   
-  if(nchar(status$complement_loc)) { 
+  if(nchar(status$loc_complement)) { 
     message("Reading Complement Data")
-    d <- str_match(pattern = "_([12]D)_", string = status$complement_loc)[,2]
+    d <- str_match(pattern = "_([12]D)_", string = status$loc_complement)[,2]
     complement <- do.call("rbind", bpmapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                           strand = "complement", d = d,
                                           SIMPLIFY = FALSE, USE.NAMES = FALSE))
