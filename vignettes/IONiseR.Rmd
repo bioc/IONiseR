@@ -14,7 +14,7 @@ bibliography: bibliography.bib
 
 ```{r style, echo = FALSE, results = 'asis'}
 BiocStyle::markdown()
-knitr::opts_chunk$set(eval=FALSE)
+knitr::opts_chunk$set(eval=TRUE)
 ```
 
 # Introduction
@@ -22,6 +22,8 @@ knitr::opts_chunk$set(eval=FALSE)
 This package is intended to provide tools for the quality assessment of data produced by Oxford Nanopore's MinION sequencer.  It includes a functions to generate a number plots for examining the statistics that we think will be useful for this task.
 
 However, nanopore sequencing is an emerging and rapidly developing technology.  It is not clear what will be most informative.  We hope that `IONiseR` will provide a framework for visualisation of metrics that we haven't thought of, and welcome feedback at mike.smith@embl.de.
+
+If you're not interested in the quality assement of the raw or event level data, and want to jump straight to the getting FASTQ format files from fast5 files you can go straight to the final section of this document.
 
 ## Getting started
 
@@ -205,7 +207,11 @@ grid.arrange(p1, p2, ncol = 2)
 
 # Extracting reads
 
-If you wish to write reads out to a FASTQ file, you can use the `writeFastq()` function from the `ShortRead` package, as shown here:
+If you wish to write reads out to a FASTQ file there are two option you can use, depending upon whether you have used some of the previous quality assessment step, or simply want to go straight to the FASTQ files without looking at any of the other metrics.
+
+## Writing from `Fast5Summary` object
+
+If you already created a `Fast5Summary` object for your files, this contains the FASTQ entries and you can use the `writeFastq()` function from the `ShortRead` package to write them to disk, as shown here:
 
 ```{r writefastq, message=FALSE}
 library(ShortRead)
@@ -216,6 +222,21 @@ writeFastq( fastq( s.typhi.rep1 ), file = tempfile() )
 
 ```{r writefastq2}
 writeFastq( fastq2D( s.typhi.rep1 ), file = tempfile() )
+```
+
+## Obtaining FASTQ directly from fast5
+
+If you aren't interested in the quality control metrics, or have already assessed them, it is quicker to extract the FASTQ files directly and ignore the other data in the fast5 files.  You can do this using the function `fast5toFastq()`.  In the example shown here we work on a single fast5 file provided with the package, however you can provide a vector file names to the `files` argument and the FASTQ entries found in all of them will be combined together.
+
+`fast5toFastq()` takes a number of additional arguments.  `fileName` provides a common stem for the created FASTQ files, while `outputDir()` defines the location the new files will be created in.  You can use `strand` to define which strands you want to extract and can take any combination of the options: *"template", "complement", "2D", "all"* and *"both"*.  The default is *"all"*, which will give you everything available. If you want only the template and complement strands you can use *both* or specify them explicitly.  `ncores` lets you specify the number of CPU cores to be used during the extraction.  This can potentially speed up this operation, but in my experience this seems to be more IO bound than CPU, so there is little benefit achieved by using a high number of cores.
+
+The final command below lists the files that have been created by the `fast5toFastq()`  You can see that we have created three files, each of which start with the text given to the `fileName` argument and then the appropriate strand is appended to the name.
+
+```{r fast5toFastq}
+fast5files <- system.file('extdata', 'example.fast5', package = "IONiseR")
+fast5toFastq(files = fast5files, fileName = "test", outputDir = tempdir(), 
+             strand = 'all', ncores = 1)
+list.files(path = tempdir(), pattern = "*.fq.gz$")
 ```
 
 # References
