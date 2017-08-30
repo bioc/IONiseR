@@ -69,23 +69,27 @@
             str_detect(pattern = "/EventDetection")
     })
     
-    ## is /Analysis/EventDetection_000 present?
+    ## is /Analysis/BaseCalled_2D present?
     basecalled_2d <- sapply(lsList, FUN = function(x) {
         select(x, name) %>% 
             str_detect(pattern = "BaseCalled_2D")
     })
     
-    template_loc <- sapply(lsList, .strandExistence, strand = "BaseCalled_template")
-    template_loc <- .chooseStrand(template_loc)
+    loc_template <- sapply(lsList, .strandExistence, strand = "BaseCalled_template")
+    loc_template <- .chooseStrand(loc_template)
     
-    complement_loc <- sapply(lsList, .strandExistence, strand = "BaseCalled_complement")
-    complement_loc <- .chooseStrand(complement_loc)
+    loc_complement <- sapply(lsList, .strandExistence, strand = "BaseCalled_complement")
+    loc_complement <- .chooseStrand(loc_complement)
+    
+    loc_2D <- sapply(lsList, .strandExistence, strand = "BaseCalled_2D")
+    loc_2D <- .chooseStrand(loc_2D)
 
     return(list(read_in_name = all(readInName),
                 raw_reads = all(rawReads),
                 event_detection = all(eventDetection),
-                template_loc = template_loc,
-                complement_loc = complement_loc,
+                loc_template = loc_template,
+                loc_complement = loc_complement,
+                loc_2D = loc_2D,
                 basecalled_2d = any(basecalled_2d))) 
     
 }

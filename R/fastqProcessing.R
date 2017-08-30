@@ -20,7 +20,7 @@
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
 #' @importFrom BiocGenerics width
-#' @importFrom stringr str_length
+#' @importFrom stringr str_length str_match
 .processFastqVec <- function(strings, readIDs = NULL, appendID = NULL) {
     
     if(any(str_length(strings) == 0))
@@ -30,7 +30,7 @@
     
     #fastqStrings <- strsplit(strings, "\n")
     #fastqStrings <- do.call(rbind, fastqStrings)
-    fastqStrings <- stringr::str_match(strings, pattern = "(.*)\n(.*)\n(\\+)\n(.*)")[,2:5]
+    fastqStrings <- stringr::str_match(strings, pattern = "(.*)\n(.*)\n(\\+)\n(.*)")[,2:5,drop=FALSE]
     
     if(is.null(readIDs)) {
         id <- BStringSet(paste0(fastqStrings[,1], appendID))
@@ -57,7 +57,7 @@
 #' @importFrom stringr str_replace
 .getFastqString <- function(file, strand = "template", d = "1D",
                             dontCheck = TRUE) {
-  ## returns the unprocess fastq string stored in fast5 files
+  ## returns the unprocessed fastq string stored in fast5 files
     if(is.character(file)) {
         fid <- H5Fopen(file)
         on.exit(H5Fclose(fid))
@@ -65,8 +65,9 @@
         fid <- file
     }
 
-    if( dontCheck || .groupExistsObj(fid, group = paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq")) ) {
-        did <- H5Dopen(fid, paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq"))
+    group <- paste0("/Analyses/Basecall_", d, "_000/BaseCalled_", strand, "/Fastq")
+    if( dontCheck || .groupExistsObj(fid, group = group) ) {
+        did <- H5Dopen(fid, group)
         fastq <- H5Dread(did)
         H5Dclose(did)
     } else {
@@ -117,20 +118,33 @@
 #' the files.  Currently this seems to be more IO bound than CPU, so there
 #' is little benefit achieved by using a high number of cores.
 #' 
+#' @return No value returned.  Run for the side effect of writing the FASTQ
+#' files to disk.
+#' 
+#' @examples \dontrun{
+#' fast5files <- list.files('/foo/bar/', pattern = '.fast5$')
+#' summaryData <- readFast5Summary(fast5files)
+#' }
+#' 
 #' @export
 #' @importFrom ShortRead writeFastq
 #' @importFrom BiocParallel MulticoreParam bpmapply register
 fast5toFastq <- function(files, strand = "all", fileName = NULL, 
                          outputDir = NULL, ncores = 1) {
     
-    ## TODO: check files exist and can be accessed
+    ## check files exist and can be accessed
+    files <- files[which(file.exists(files))]
+    if(length(files) == 0) {
+        stop('None of the provided files can be accessed. ',
+            'Have you supplied the correct path?')
+    }
     
     ## understand the file structure
     status <- .fast5status(files = sample(files, size = min(length(files), 15)))
     
     strand <- .processStrandSpecifier(strand)
     ## if only 1D pipeline has been run, we can't get complement/2d data
-        if( (!nchar(status$complement_loc) && "complement" %in% strand) ) {
+        if( (!nchar(status$loc_complement) && "complement" %in% strand) ) {
         warning("This data has only been processed using the 1D pipeline.\n",
                 "FASTQ files for the complement strand will not be generated.",
                 call. = FALSE)
@@ -148,14 +162,20 @@ fast5toFastq <- function(files, strand = "all", fileName = NULL,
     register(MulticoreParam(workers = ncores))
     
     for(s in strand) {
-        d <- str_match(status$template_loc, pattern = "Basecall_([12]D)")[,2]
+        d <- str_match(status[[ paste0('loc_', s) ]], 
+                       pattern = "Basecall_([12]D)")[,2]
         fastq_vec <- bpmapply(FUN = .getFastqString, files, 
-                            strand = s, d = d,
-                            dontCheck = FALSE,
+                            MoreArgs = list(strand = s, d = d, dontCheck = FALSE),
                             USE.NAMES = FALSE)
+        if(length(fastq_vec) == 0) {
+            warning("No entries found for ", s, "strand. ",
+                    "No FASTQ file created.",
+                    call. = FALSE)
+            next()
+        }
         fastq_fq <- .processFastqVec(fastq_vec)$fastq
-        ShortRead::writeFastq(fastq_fq, 
-                              file = file.path(outputDir, 
-                                               paste0(fileName, "_", s, ".fq.gz")))
+        writeFastq(fastq_fq, 
+                   file = file.path(outputDir, 
+                                    paste0(fileName, "_", s, ".fq.gz")))
     }
 }

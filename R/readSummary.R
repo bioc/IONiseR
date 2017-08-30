@@ -11,22 +11,28 @@
 #' @param files Character vector of fast5 files to be read.
 #' @return Object of class \linkS4class{Fast5Summary}
 #' @examples \dontrun{
-#' fast5files <- list.file('/foo/bar/', pattern = '.fast5$')
+#' fast5files <- list.files('/foo/bar/', pattern = '.fast5$')
 #' summaryData <- readFast5Summary(fast5files)
 #' }
 #' @export
 #' @importFrom tibble tibble as_tibble
 #' @importFrom dplyr filter
 #' @importFrom ShortRead append
+#' @importFrom utils packageVersion
 readFast5Summary <- function(files) {
     
     ## some files can't be opened, so we filter them here
     message("Checking file validity")
+    files <- files[file.exists(files)]
+    if(length(files) == 0) {
+        stop('None of the provided files can be accessed.  ',
+             'Have you supplied the correct path?')
+    }
     fileStatus <- sapply(files, .checkOpening, USE.NAMES = FALSE)
     files <- files[ which(fileStatus) ]
-
+    
     status <- .fast5status(files = sample(files, size = min(length(files), 15)))
-    if(status$template_loc == "") {
+    if(status$loc_template == "") {
         stop("No basecalls for template strand found.  Aborting")
     }
     
@@ -39,12 +45,12 @@ readFast5Summary <- function(files) {
     readInfo <- do.call("rbind", mapply(.getReadChannelMux2, files, readNums, dontCheck = TRUE,
                                         USE.NAMES = FALSE, SIMPLIFY = FALSE))
     readInfo <- as_tibble(cbind(id = 1:nrow(readInfo), file = basename(files), readInfo))
-
+    
     if(status$raw_reads) {
         message("Reading Raw Data")
         ## raw data is the median signal, and the duration of the read
         rawData <- as_tibble(do.call("rbind", mapply(.getRawSummary, files, readNums, dontCheck = TRUE, 
-                                       USE.NAMES = FALSE, SIMPLIFY = FALSE)))
+                                                     USE.NAMES = FALSE, SIMPLIFY = FALSE)))
     } 
     
     message("Reading Event Data")
@@ -61,11 +67,11 @@ readFast5Summary <- function(files) {
     ## To do this we find the sampling rate stored in one file
     samplingRate <- .getSamplingRate(files[1])
     rawEventData <- mutate(rawEventData, 
-                      start_time = start_time / samplingRate,
-                      duration = duration / samplingRate)
-
+                           start_time = start_time / samplingRate,
+                           duration = duration / samplingRate)
+    
     message("Reading Template Data")
-    d <- str_match(pattern = "_([12]D)_", string = status$template_loc)[,2]
+    d <- str_match(pattern = "_([12]D)_", string = status$loc_template)[,2]
     template <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                         strand = "template", d = d,
                                         SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -83,9 +89,9 @@ readFast5Summary <- function(files) {
     }
     baseCalled <- template
     
-    if(nchar(status$complement_loc)) { 
+    if(nchar(status$loc_complement)) { 
         message("Reading Complement Data")
-        d <- str_match(pattern = "_([12]D)_", string = status$complement_loc)[,2]
+        d <- str_match(pattern = "_([12]D)_", string = status$loc_complement)[,2]
         complement <- do.call("rbind", mapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                               strand = "complement", d = d,
                                               SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -97,12 +103,12 @@ readFast5Summary <- function(files) {
         fq_c <- mapply(.getFastqString, files[ complement[['id']] ], strand = "complement", d = d)
         fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
         fastq_complement <- fq_c$fastq
-
+        
         ## if there are any invalid entries we need to remove them
         if(length(fq_c$invalid)) {
             complement <- complement[-fq_c$invalid,]
         }
-
+        
     } else {
         fastq_complement <- ShortRead::ShortReadQ()
         complement <- NULL
@@ -121,12 +127,12 @@ readFast5Summary <- function(files) {
     ## We update the individual strands to indicate if they are part of a full 2D read
     template <- as_tibble(cbind(template, full_2D = template[['id']] %in% idx2D))
     complement <- as_tibble(cbind(complement, full_2D = complement[['id']] %in% idx2D))
-        
+    
     # ## combine the template, complement and 2D data
     baseCalled <- rbind(template, complement)
     fastq <- ShortRead::append(fastq_template, fastq_complement)
     if(length(idx2D)) {
-         fastq <- ShortRead::append(fastq, fastq_2D)
+        fastq <- ShortRead::append(fastq, fastq_2D)
     }
     
     message("Done")
@@ -136,14 +142,13 @@ readFast5Summary <- function(files) {
                eventData = rawEventData, 
                baseCalled = baseCalled, 
                fastq = fastq,
-               versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=T)[[1]]
+               versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=TRUE)[[1]]
                                # 'MinKNOW' = max(versions))
-                                )
+               )
     )
     
     return(obj)
 }
-
 
 #' @importFrom BiocParallel MulticoreParam register bpmapply
 readFast5Summary.mc <- function(files, ncores = 2) {
@@ -156,7 +161,7 @@ readFast5Summary.mc <- function(files, ncores = 2) {
   files <- files[ which(fileStatus) ]
   
   status <- .fast5status(files = sample(files, size = min(length(files), 15)))
-  if(status$template_loc == "") {
+  if(status$loc_template == "") {
     stop("No basecalling for template strand found.  Aborting")
   }
   
@@ -195,7 +200,7 @@ readFast5Summary.mc <- function(files, ncores = 2) {
                          duration = duration / samplingRate)
   
   message("Reading Template Data")
-  d <- str_match(pattern = "_([12]D)_", string = status$template_loc)[,2]
+  d <- str_match(pattern = "_([12]D)_", string = status$loc_template)[,2]
   template <- do.call("rbind", bpmapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                       strand = "template", d = d,
                                       SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -213,9 +218,9 @@ readFast5Summary.mc <- function(files, ncores = 2) {
   }
   baseCalled <- template
   
-  if(nchar(status$complement_loc)) { 
+  if(nchar(status$loc_complement)) { 
     message("Reading Complement Data")
-    d <- str_match(pattern = "_([12]D)_", string = status$complement_loc)[,2]
+    d <- str_match(pattern = "_([12]D)_", string = status$loc_complement)[,2]
     complement <- do.call("rbind", bpmapply(.getBaseCalledSummary, files, dontCheck = FALSE, 
                                           strand = "complement", d = d,
                                           SIMPLIFY = FALSE, USE.NAMES = FALSE))
@@ -266,7 +271,9 @@ readFast5Summary.mc <- function(files, ncores = 2) {
              eventData = rawEventData, 
              baseCalled = baseCalled, 
              fastq = fastq,
-             versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),".",fixed=T)[[1]]
+             versions = list('IONiseR' = strsplit(as.character(packageVersion("IONiseR")),
+                                                  ".",
+                                                  fixed=TRUE)[[1]]
                              # 'MinKNOW' = max(versions))
              )
   )

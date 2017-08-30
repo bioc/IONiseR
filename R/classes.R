@@ -45,6 +45,10 @@
 #' (template, complement and 2D).  The read names take the form NUM_STRAND, 
 #' where NUM matches with the id column in the other slots and STRAND indicates 
 #' whether the read is template, complement or 2D.
+#' @slot versions A list intended to store the version of IONiseR that was used
+#' to create the object.  (May be extended in the future to include the version
+#' of MinKNOW that the original fast5 files were processed, if this can be 
+#' determined accurately.)
 #' @return An object of class Fast5Summary
 #' @name Fast5Summary-class
 #' @exportClass Fast5Summary

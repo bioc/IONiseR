@@ -10,7 +10,7 @@
 #' @importFrom dplyr select slice
 #' @importFrom tidyr gather
 #' @importFrom XVector compact
-#' @importFrom methods initialize
+#' @importFrom methods initialize .hasSlot
 setMethod("[", c("Fast5Summary", "ANY"), function(x, i) {
     recordTable <- .matchRecords(x)[i,]
     

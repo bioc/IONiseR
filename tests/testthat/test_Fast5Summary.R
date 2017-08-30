@@ -17,10 +17,14 @@ test_that("subsetting works", {
 })
 
 fast5files <- system.file('extdata', c('example.fast5', 'example_v2.fast5'), package = "IONiseR")
+
 test_that("Error thrown when incompatible files combined", {
     expect_error(readFast5Summary(fast5files), "Inconsistent analysis workflows")
 })
 
+test_that("Error thrown when file can't be found", {
+    expect_error(readFast5Summary('/not/path/to/file.fast5'), "None of the provided files can be accessed")
+})
 
 f1 <- readFast5Summary(fast5files[2])
 
@@ -48,5 +52,5 @@ test_that("Reading FASTQ", {
 
 test_that("Catch broken file", {
     fast5_nw <- system.file('extdata', 'example_not-working.fast5', package = "IONiseR")
-    expect_error(readFast5Summary(fast5_nw), "No basecalling for template strand found")
+    expect_error(readFast5Summary(fast5_nw), "No basecalls for template strand found")
 })
