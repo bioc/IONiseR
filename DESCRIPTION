@@ -1,6 +1,6 @@
 Package: IONiseR
 Title: Quality Assessment Tools for Oxford Nanopore MinION data
-Version: 2.1.0
+Version: 2.1.1
 Authors@R: person("Mike", "Smith", email = "grimbough@gmail.com", role
         = c("aut", "cre"))
 Description: IONiseR provides tools for the quality assessment of
@@ -12,7 +12,7 @@ Description: IONiseR provides tools for the quality assessment of
     spatially over the surface of a flowcell.
 License: MIT + file LICENSE
 Depends:
-    R (>= 3.3)
+    R (>= 3.4)
 Imports:
     rhdf5,
     dplyr,
@@ -58,3 +58,4 @@ Collate:
     'plotting_summaryStats.R'
     'processing_bam.R'
     'readSummary.R'
+    'squiggle.R'

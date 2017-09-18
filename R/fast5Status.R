@@ -53,7 +53,7 @@
 .fast5status <- function(files, warn = FALSE) {
     
     ## is the read number present in the file name?
-    readInName <- stringr::str_detect(string = files, pattern = "read([0-9]+)")
+    readInName <- stringr::str_detect(string = files, pattern = "read[_]?([0-9]+)")
     
     lsList <- lapply(files, h5ls, recursive = 3, datasetinfo = FALSE)
     
