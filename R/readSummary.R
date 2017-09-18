@@ -38,11 +38,11 @@ readFast5Summary <- function(files) {
     
     message("Reading Channel Data")
     if(status$read_in_name) {
-        readNums <- as.integer(str_match(string = files, pattern = "read([0-9]+)")[,2])
+        readNums <- as.integer(str_match(string = files, pattern = "read[_]?([0-9]+)")[,2])
     } else { 
         readNums <- rep(NA, length(files))
     }
-    readInfo <- do.call("rbind", mapply(.getReadChannelMux2, files, readNums, dontCheck = TRUE,
+    readInfo <- do.call("rbind", mapply(.getReadChannelMux2, files, readNums, dontCheck = FALSE,
                                         USE.NAMES = FALSE, SIMPLIFY = FALSE))
     readInfo <- as_tibble(cbind(id = 1:nrow(readInfo), file = basename(files), readInfo))
     
@@ -53,9 +53,14 @@ readFast5Summary <- function(files) {
                                                      USE.NAMES = FALSE, SIMPLIFY = FALSE)))
     } 
     
-    message("Reading Event Data")
-    eventData <- do.call("rbind", mapply(.getEventsSummary,  files, readNums, dontCheck = TRUE, 
-                                         USE.NAMES = FALSE, SIMPLIFY = FALSE))
+    if(status$event_detection) {
+        message("Reading event data")
+        eventData <- do.call("rbind", mapply(.getEventsSummary,  files, readNums, dontCheck = TRUE, 
+                                             USE.NAMES = FALSE, SIMPLIFY = FALSE))
+    } else {
+        message("Event data not found")
+        eventData <- NA
+    }
     
     if(status$raw_reads) {
         rawEventData <- as_tibble(cbind(id = readInfo[['id']], rawData, eventData))
@@ -65,10 +70,13 @@ readFast5Summary <- function(files) {
     
     ## we convert timing data into seconds. 
     ## To do this we find the sampling rate stored in one file
-    samplingRate <- .getSamplingRate(files[1])
-    rawEventData <- mutate(rawEventData, 
-                           start_time = start_time / samplingRate,
-                           duration = duration / samplingRate)
+    ## not possible if the event_data wasn't present in the files
+    if(status$event_detection) {
+        samplingRate <- .getSamplingRate(files[1])
+        rawEventData <- mutate(rawEventData, 
+                               start_time = start_time / samplingRate,
+                               duration = duration / samplingRate)
+    }
     
     message("Reading Template Data")
     d <- str_match(pattern = "_([12]D)_", string = status$loc_template)[,2]
@@ -167,7 +175,7 @@ readFast5Summary.mc <- function(files, ncores = 2) {
   
   message("Reading Channel Data")
   if(status$read_in_name) {
-    readNums <- as.integer(str_match(string = files, pattern = "read([0-9]+)")[,2])
+    readNums <- as.integer(str_match(string = files, pattern = "read[_]?([0-9]+)")[,2])
   } else { 
     readNums <- rep(NA, length(files))
   }
