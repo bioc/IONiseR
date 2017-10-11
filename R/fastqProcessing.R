@@ -20,7 +20,7 @@
 #' @importFrom Biostrings BStringSet DNAStringSet
 #' @importFrom ShortRead FastqQuality
 #' @importFrom BiocGenerics width
-#' @importFrom stringr str_length str_match
+#' @importFrom stringr str_length str_match str_replace_all
 .processFastqVec <- function(strings, readIDs = NULL, appendID = NULL) {
     
     if(any(str_length(strings) == 0))
@@ -37,6 +37,13 @@
     } else {
         id <- BStringSet(paste0(readIDs, appendID))
     }
+    
+    ## replace U with T to cope with RNA data
+    ## this could be made more generalisable
+    fastqStrings[,2] <- stringr::str_replace_all(string = fastqStrings[,2], 
+                             pattern = "U", 
+                             replacement = "T")
+    
     sread <- DNAStringSet(fastqStrings[,2])
     qual <- FastqQuality(fastqStrings[,4])
     

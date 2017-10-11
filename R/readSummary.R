@@ -106,7 +106,6 @@ readFast5Summary <- function(files) {
         complement <- mutate(complement, id = readInfo[['id']])
         complement <- filter(complement, !(is.na(num_events)))
         
-        
         message("Reading Complement FASTQ")
         fq_c <- mapply(.getFastqString, files[ complement[['id']] ], strand = "complement", d = d)
         fq_c <- .processFastqVec(fq_c, readIDs = complement[['id']], appendID = "_complement")  
