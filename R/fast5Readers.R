@@ -35,12 +35,12 @@
         H5Gclose(gid)
     }
     
-    #if(.groupExistsObj(fid, group = paste0("/Raw/EventDetection_000/Reads/", readNum))) {
+    if(.groupExistsObj(fid, group = paste0("/Raw/EventDetection_000/Reads/", readNum))) {
         gid <- H5Gopen(fid, paste0("/Analyses/EventDetection_000/Reads/", readNum)) 
         aid <- H5Aopen(gid, "start_time") 
         start_time <- H5Aread(aid) 
         H5Aclose(aid)
-    #}
+    }
     
     ## start time should be stored under /Raw/Reads, so try here too
     ## for old files this doesn't exist, and sometimes start_time is blank
@@ -59,6 +59,44 @@
     }
     
     return(start_time)
+} 
+
+## We can often get temporal information from either event data
+## or raw data.  This function gets the start time and durtion
+## from the raw data group in the fast5 file
+.getRawStartDuration <- function(file, readNum = NULL) {
+    
+    if(is.character(file)) {
+        fid <- H5Fopen(file)
+        on.exit(H5Fclose(fid))
+    } else {
+        fid <- file
+    }
+    
+    start_time <- NA
+    
+    ## providing the read number might speed things up if we have it already
+    ## wont work for now, later code expects just the number not 'Read_N'
+    #if(is.null(readNum)) {
+    #    gid <- H5Gopen(fid, "/Raw/Reads/")
+    #    readNum <- h5ls(gid)[1,"name"]
+    #    H5Gclose(gid)
+    #}
+    
+    ## start time should be stored under /Raw/Reads, so try here too
+    ## for old files this doesn't exist, and sometimes start_time is blank
+    if(is.na(start_time) && 
+       .groupExistsObj(fid, group = paste0("/Raw/Reads/Read_", readNum))) {
+        gid <- H5Gopen(fid, paste0("/Raw/Reads/Read_", readNum)) 
+        aid <- H5Aopen(gid, "start_time") 
+        start_time <- H5Aread(aid) 
+        H5Aclose(aid)
+        aid <- H5Aopen(gid, "duration") 
+        duration <- H5Aread(aid) 
+        H5Aclose(aid)
+    }
+    
+    return( c(start_time, duration) )
 } 
 
 ## The sampling is how many times the signal is recorded per second.
