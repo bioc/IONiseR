@@ -55,11 +55,14 @@ readFast5Summary <- function(files) {
     
     if(status$event_detection) {
         message("Reading event data")
-        eventData <- do.call("rbind", mapply(.getEventsSummary,  files, readNums, dontCheck = TRUE, 
+        eventData <- do.call("rbind", mapply(.getEventsSummary, files, readNums, dontCheck = TRUE, 
                                              USE.NAMES = FALSE, SIMPLIFY = FALSE))
     } else {
         message("Event data not found")
         eventData <- NA
+        eventData <- do.call("rbind", mapply(.getRawStartDuration, files, readNums, 
+                                             USE.NAMES = FALSE, SIMPLIFY = FALSE))
+        colnames(eventData) <- c("start_time", "duration")
     }
     
     if(status$raw_reads) {
@@ -71,12 +74,12 @@ readFast5Summary <- function(files) {
     ## we convert timing data into seconds. 
     ## To do this we find the sampling rate stored in one file
     ## not possible if the event_data wasn't present in the files
-    if(status$event_detection) {
+    #if(status$event_detection) {
         samplingRate <- .getSamplingRate(files[1])
         rawEventData <- mutate(rawEventData, 
                                start_time = start_time / samplingRate,
                                duration = duration / samplingRate)
-    }
+    #}
     
     message("Reading Template Data")
     d <- str_match(pattern = "_([12]D)_", string = status$loc_template)[,2]
