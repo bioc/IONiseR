@@ -91,9 +91,11 @@
         aid <- H5Aopen(gid, "start_time") 
         start_time <- H5Aread(aid) 
         H5Aclose(aid)
+        
         aid <- H5Aopen(gid, "duration") 
         duration <- H5Aread(aid) 
         H5Aclose(aid)
+        H5Gclose(gid)
     }
     
     return( c(start_time, duration) )
