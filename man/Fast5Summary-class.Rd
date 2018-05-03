@@ -25,7 +25,7 @@
 
 \S4method{fastq}{Fast5Summary}(x)
 
-\S4method{[}{Fast5Summary,ANY,ANY}(x, i)
+\S4method{[}{Fast5Summary,ANY,ANY,ANY}(x, i)
 
 \S4method{fastqTemplate}{Fast5Summary}(x)
 
