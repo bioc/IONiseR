@@ -1,6 +1,6 @@
 Package: IONiseR
 Title: Quality Assessment Tools for Oxford Nanopore MinION data
-Version: 2.5.1
+Version: 2.13.1
 Authors@R: person("Mike", "Smith", email = "grimbough@gmail.com", role
         = c("aut", "cre"))
 Description: IONiseR provides tools for the quality assessment of
