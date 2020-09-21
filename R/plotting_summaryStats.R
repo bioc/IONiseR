@@ -23,12 +23,12 @@ plotReadCategoryCounts <- function(summaryData) {
     }
     if(pf) {
         tab <- c(tab, nrow(filter(readInfo(summaryData), pass == TRUE)))
-        res <- data_frame(
+        res <- tibble(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass'),
                               levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D', 'Pass')),   
             count = tab)
     } else {
-        res <- data_frame(
+        res <- tibble(
             category = factor(c('Fast5 File Count', 'Template', 'Complement', 'Full 2D'),
                               levels = c('Fast5 File Count', 'Template', 'Complement', 'Full 2D')),   
             count = tab)
@@ -79,10 +79,10 @@ plotReadCategoryQuals <- function(summaryData) {
 #'    plotActiveChannels( s.typhi.rep2 )
 #' }
 #' @export
-#' @importFrom dplyr mutate count data_frame
+#' @importFrom dplyr mutate count tibble
 plotActiveChannels <- function(summaryData) {
     startEndSummary <- mutate(eventData(summaryData), first = start_time %/% 60, last = (start_time + duration) %/% 60)
-    tab <- data_frame(minute = unlist(apply(startEndSummary, 1, function(x) { x['first']:x['last'] }))) %>%
+    tab <- tibble(minute = unlist(apply(startEndSummary, 1, function(x) { x['first']:x['last'] }))) %>%
         count(minute)
     
     ggplot(tab, aes(x = minute / 60, y = n)) + 

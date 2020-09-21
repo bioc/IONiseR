@@ -121,7 +121,7 @@ The function `plotReadCategories()` will visualise the total number of fast5 fil
 
 It may also be interesting to examine the base quality scores for the reads in the three categories.  The function `plotReadCategoryQuals()` allows one to do this, calculating the mean quality score for each sequence.
 
-```{r readCategories, fig.height=5, fig.width=12.5, dev='svg', warning=FALSE}
+```{r readCategories, fig.height=5, fig.width=12.5, dev='png', warning=FALSE}
 p1 <- plotReadCategoryCounts(s.typhi.rep1)
 p2 <- plotReadCategoryQuals(s.typhi.rep1)
 grid.arrange(p1, p2, ncol = 2)
@@ -142,7 +142,7 @@ grid.arrange(p1, p2, ncol = 2)
 # Layout plots
 
 When considering channel related metrics we can plot them as they are laid out on the flow cell.  To create plots of this form we can use the function `layoutPlot()`.  
-```{r numReads, fig.height=4.8, fig.width=14.5, dev='svg', warning=FALSE}
+```{r numReads, fig.height=4.8, fig.width=14.5, dev='png', warning=FALSE}
 p1 <- layoutPlot(s.typhi.rep1, attribute = "nreads")
 p2 <- layoutPlot(s.typhi.rep1, attribute = "kb")
 grid.arrange(p1, p2, ncol = 2)
@@ -156,7 +156,7 @@ If you wish to map a different metric on to the channel layout you can use the f
 
 To demonstrate this, in the example below we will plot both the number of full 2D reads produced by each channel, and the proportion of all reads from the channel that are 2D.  When retrieving data from the `Fast5Summary`  object, each slot is returned as a `data.table`, allowing us to use `dplyr` and its associated pipe paradigm to manipulate the data. 
 
-```{r heatmapExample, fig.height=4.8, fig.width=14.5, dev='svg', message=FALSE, warning=FALSE}
+```{r heatmapExample, fig.height=4.8, fig.width=14.5, dev='png', message=FALSE, warning=FALSE}
 library(dplyr)
 
 read_count_2D <- baseCalled(s.typhi.rep1) %>% ## start with base called reads
@@ -218,7 +218,7 @@ library(ShortRead)
 writeFastq( fastq( s.typhi.rep1 ), file = tempfile() )
 ```
 
-`IONiseR` also includes shortcut accessor functions for extracting the fastq entries for only the template (`fastqTemplate()`), complement (`fastqComplement()`) or 2D (`fastq2D()`) reads.  You can use these to extract and write out only the subset of reads you are intested in.  The example below will save only the 2D reads to a file.
+`IONiseR` also includes shortcut accessor functions for extracting the fastq entries for only the template (`fastqTemplate()`), complement (`fastqComplement()`) or 2D (`fastq2D()`) reads.  You can use these to extract and write out only the subset of reads you are interested in.  The example below will save only the 2D reads to a file.
 
 ```{r writefastq2}
 writeFastq( fastq2D( s.typhi.rep1 ), file = tempfile() )

@@ -338,7 +338,7 @@
     
     if(exists) {
         did <- H5Dopen(fid, "/Analyses/Alignment_000/Aligned_2d/SAM")
-        samData <- data_frame(H5Dread(did))
+        samData <- tibble(H5Dread(did))
     } else {
         samData <- ""
     }

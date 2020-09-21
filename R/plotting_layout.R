@@ -20,7 +20,7 @@
 #'    summarise(mean_nevents = mean(num_events))
 #'    channelHeatmap(avgEvents, zValue = 'mean_nevents')
 #' }
-#' @importFrom dplyr as_data_frame
+#' @importFrom dplyr as_tibble
 #' @export
 channelHeatmap <- function(data, zValue) {
     
@@ -28,7 +28,7 @@ channelHeatmap <- function(data, zValue) {
         stop("Column '", zValue, "' not found")
     }
     
-    plottingMap <- as_data_frame(cbind(.channelToXY(data[['channel']], shiftRows = TRUE), zValue = data[[zValue]]))
+    plottingMap <- as_tibble(cbind(.channelToXY(data[['channel']], shiftRows = TRUE), zValue = data[[zValue]]))
     
     ggplot(plottingMap, aes_string(x = "matrixCol", y = "matrixRow", colour = "zValue")) + 
         geom_rect(mapping = aes(xmin = 0, xmax = 8.5, ymin = -0.5, ymax = 33.5), fill = "grey50", colour = "black") +
